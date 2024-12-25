@@ -9,8 +9,8 @@ export class JwtAdapter implements JwtProtocol {
     this.secret = newSecret
   }
 
-  encode(user: Omit<User, 'password'>) : string {
-    return jwt.sign(user, this.secret, { expiresIn: '8h'})
+  encode(user: Omit<User, 'password'>, expiresIn: '8h' | '7d') : string {
+    return jwt.sign(user, this.secret, { expiresIn: expiresIn})
   }
   
   validate (token: string): Omit<User, 'password'> {
