@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { JwtProtocol } from '../../data/protocols/jwt'
-import { Prisma } from '@prisma/client'
+import { Prisma, User } from '@prisma/client'
 
 export class JwtAdapter implements JwtProtocol {
   private readonly secret: string
@@ -9,11 +9,11 @@ export class JwtAdapter implements JwtProtocol {
     this.secret = newSecret
   }
 
-  encode(user: Omit<Prisma.UserFieldRefs, 'password'>) : string {
+  encode(user: Omit<User, 'password'>) : string {
     return jwt.sign(user, this.secret, { expiresIn: '8h'})
   }
   
-  validate (token: string): Omit<Prisma.UserFieldRefs, 'password'> {
-    return jwt.verify(token, this.secret) as Omit<Prisma.UserFieldRefs, 'password'>
+  validate (token: string): Omit<User, 'password'> {
+    return jwt.verify(token, this.secret) as Omit<User, 'password'>
   }
 }
