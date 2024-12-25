@@ -3,10 +3,15 @@ import { HttpRequest, HttpResponse } from '../protocols'
 import { badRequest, ok } from '../helpers/http-helper'
 import prisma from '../../main/config/prisma'
 import env from '../../main/config/env'
+import { JwtAdapter } from '../../infra/auth/jwt-adapter'
 
 export class UserController {
-  constructor(private readonly bcrypt: BcryptAdapter) {
+  constructor(private readonly bcrypt: BcryptAdapter,
+     private readonly jwtAdapter: JwtAdapter,
+     private readonly secondaryJwtAdapter: JwtAdapter) {
     this.bcrypt = bcrypt
+    this.jwtAdapter = jwtAdapter
+    this.secondaryJwtAdapter = secondaryJwtAdapter
   }
 
   async createUser(
@@ -41,14 +46,25 @@ export class UserController {
     const user = await prisma.user.create({
       data: {
         ...body,
+        role: 'USER',
         password: hashedPassword,
       }
     })
 
     // TODO: implement jwt management
 
+    const {
+      password,
+      ...userWithoutPassword
+    } = user
+
+    var token = this.jwtAdapter.encode(userWithoutPassword, '8h')
+    var refreshToken = this.secondaryJwtAdapter.encode(userWithoutPassword, '7d')
+
     return ok({
       ...user,
+      token,
+      refreshToken
     })
   }
 }
