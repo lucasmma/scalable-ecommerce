@@ -12,7 +12,7 @@ export default (router: Router): void => {
   const baseRoute = '/user'
   const controller = makeUserController()
 
-  router.post(baseRoute, adaptRoute(controller, controller.createUser, new SchemaAdapter(createUserSchema)))
-  router.post('/oauth', adaptRoute(controller, controller.oauthToken, new SchemaAdapter(oauthTokenSchema)))
-  router.put(baseRoute, adaptAuthRoute(controller.jwtAdapter) , adaptRoute(controller, controller.editUser, new SchemaAdapter(editUserSchema)))
+  router.post(baseRoute, adaptRoute(controller, controller.createUser, { body: createUserSchema }))
+  router.post('/oauth', adaptRoute(controller, controller.oauthToken, { body: oauthTokenSchema }))
+  router.put(baseRoute, adaptAuthRoute(controller.jwtAdapter) , adaptRoute(controller, controller.editUser, { body: editUserSchema }))
 }

@@ -11,7 +11,7 @@ export default (router: Router): void => {
   const baseRoute = '/product-category'
   const controller = makeProductCategoryController()
   const jwtAdapter = new JwtAdapter(env.JWT_SECRET)
-  router.post(baseRoute, adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.createProductCategory, new SchemaAdapter(createProductCategorySchema)))
+  router.post(baseRoute, adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.createProductCategory, { body: createProductCategorySchema }))
   router.get(baseRoute, adaptAuthRoute(jwtAdapter) , adaptRoute(controller, controller.getProductCategories))
   router.delete(baseRoute, adaptAuthRoute(jwtAdapter) , adaptRoute(controller, controller.deleteProductCategory))
 }
