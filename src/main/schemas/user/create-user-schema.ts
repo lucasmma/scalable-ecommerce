@@ -6,7 +6,7 @@ export const createUserSchema = z.object({
   documentNumber: z.string().length(9),
   password: z.string().min(6),
   passwordConfirmation: z.string().min(6)
-}).refine((data) => data.password === data.passwordConfirmation, {
+}).strict().refine((data) => data.password === data.passwordConfirmation, {
   message: 'Passwords do not match',
   path: ['passwordConfirmation'], // Path should match the field you're validating
 });

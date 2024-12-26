@@ -5,7 +5,7 @@ export const oauthTokenSchema = z.object({
   email: z.string().optional(),
   password: z.string().optional(),
   refreshToken: z.string().optional(),
-}).superRefine((data, ctx) => {
+}).strict().superRefine((data, ctx) => {
   if (data.grantType === 'client_credentials') {
     if (!data.email) {
       ctx.addIssue({
