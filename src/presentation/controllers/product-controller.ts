@@ -40,15 +40,29 @@ export class ProductController {
   }
 
   async editProduct(request: HttpRequest): Promise<HttpResponse> {
-    const body = request.body!
+    const {
+      categoryId, ...bodyWithoutCategory
+    } = request.body!
     const { id } = request.params!
+
+    var connectCategory = {}
+    if(categoryId) {
+      connectCategory = {
+        category: {
+          connect: {
+            id: categoryId
+          }
+        }
+      }
+    }
 
     const product = await prisma.product.update({
       where: {
         id
       },
       data: {
-        ...body
+        ...bodyWithoutCategory,
+        ...connectCategory
       }
     })
 
