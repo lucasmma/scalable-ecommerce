@@ -5,7 +5,7 @@ import env from '../config/env'
 import { adaptAuthRoute } from '../adapters/auth-route-adapter'
 import { adaptRoute } from '../adapters/controller-route-adapter'
 import { createProductCategorySchema } from '../schemas/product-category/create-product-category-schema'
-import { SchemaAdapter } from '../../infra/schema/schema-adapter'
+import { idSchema } from '../schemas/id-schema'
 
 export default (router: Router): void => {
   const baseRoute = '/product-category'
@@ -13,5 +13,5 @@ export default (router: Router): void => {
   const jwtAdapter = new JwtAdapter(env.JWT_SECRET)
   router.post(baseRoute, adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.createProductCategory, { body: createProductCategorySchema }))
   router.get(baseRoute, adaptAuthRoute(jwtAdapter) , adaptRoute(controller, controller.getProductCategories))
-  router.delete(baseRoute, adaptAuthRoute(jwtAdapter) , adaptRoute(controller, controller.deleteProductCategory))
+  router.delete(baseRoute + '/:id', adaptAuthRoute(jwtAdapter) , adaptRoute(controller, controller.deleteProductCategory, { param: idSchema }))
 }
