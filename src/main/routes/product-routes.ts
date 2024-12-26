@@ -11,4 +11,5 @@ export default (router: Router): void => {
   const jwtAdapter = new JwtAdapter(env.JWT_SECRET)
   const controller = makeProductController()
   router.post(baseRoute, adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.createProduct, new SchemaAdapter(createProductSchema)))
+  router.get(baseRoute, adaptAuthRoute(jwtAdapter) , adaptRoute(controller, controller.getProducts))
 }
