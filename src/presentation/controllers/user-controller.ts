@@ -41,7 +41,7 @@ export class UserController {
 
     const hashedPassword = await this.bcrypt.encrypt(body.password)
 
-    delete body.confirmationPassword; delete body.password
+    delete body.passwordConfirmation; delete body.password
 
     const user = await prisma.user.create({
       data: {
@@ -62,7 +62,7 @@ export class UserController {
     var refreshToken = this.secondaryJwtAdapter.encode(userWithoutPassword, '7d')
 
     return ok({
-      ...user,
+      ...userWithoutPassword,
       token,
       refreshToken
     })
