@@ -4,6 +4,7 @@ import { ok } from '../helpers/http-helper'
 import prisma from '../../main/config/prisma'
 import { omit } from '../helpers/omit-field'
 import { createProductCategorySchema } from '../../main/schemas/product-category/create-product-category-schema'
+import { queryListProductCategorySchema } from '../../main/schemas/product-category/query-list-product-category-schema'
 
 export class ProductCategoryController {
   constructor() {
@@ -55,20 +56,27 @@ export class ProductCategoryController {
   }
 
   async getProductCategories(
-    request: HttpRequest,
+    request: HttpRequest<null, (typeof queryListProductCategorySchema._output)>,
   ): Promise<HttpResponse> {
 
     var isAdmin = request.auth?.user.role === 'ADMIN'
 
     var where = {}
-
     if(!isAdmin) {
       where = {
         deleted: false
       }
     }
+    var include = {}
+    if(request.query?.include_products) {
+      include = {
+        products: true
+      }
+    }
 
-    var productCategories = await prisma.productCategory.findMany(where)
+    var productCategories = await prisma.productCategory.findMany({
+      where, include
+    })
 
     if(request.auth?.user.role !== 'ADMIN'){
       ok(productCategories.map(productCategory => {
