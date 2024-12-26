@@ -5,8 +5,8 @@ export interface HttpResponse {
   body: any
 }
 
-export interface HttpRequest {
-  body?: any
+export interface HttpRequest<T = any> {
+  body?: T
   headers?: any
   auth?: {
     user: Prisma.UserFieldRefs
