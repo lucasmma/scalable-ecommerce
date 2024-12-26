@@ -88,7 +88,7 @@ export class UserController {
       var refreshToken = this.secondaryJwtAdapter.encode(userWithoutPassword, '7d')
 
       return ok({
-        ...userWithoutPassword,
+        ...omit(userWithoutPassword, ['role']),
         token,
         refreshToken
       })
@@ -137,7 +137,7 @@ export class UserController {
       }
     })
 
-    var userWithoutPassword = omit(updatedUser, ['password'])
+    var userWithoutPassword = omit(updatedUser, ['password', 'role'])
 
     return ok(userWithoutPassword)
   }
