@@ -9,6 +9,6 @@ export interface HttpRequest<T = any> {
   body?: T
   headers?: any
   auth?: {
-    user: User
+    user: Omit<User, 'password'>
   }
 }
