@@ -7,6 +7,7 @@ import { JwtAdapter } from '../../infra/auth/jwt-adapter'
 import { createUserSchema } from '../../main/schemas/user/create-user-schema'
 import { oauthTokenSchema } from '../../main/schemas/user/oauth-token-schema'
 import { omit } from '../helpers/omit-field'
+import { editUserSchema } from '../../main/schemas/user/edit-user-schema'
 
 export class UserController {
   constructor(private readonly bcrypt: BcryptAdapter,
@@ -81,10 +82,10 @@ export class UserController {
       if (!passwordMatch) {
         return badRequest(new Error('Invalid credentials'))
       }
+      const userWithoutPassword = omit(user, ['password'])
 
-      var token = this.jwtAdapter.encode(user, '8h')
-      var refreshToken = this.secondaryJwtAdapter.encode(user, '7d')
-      var userWithoutPassword = omit(user, ['password'])
+      var token = this.jwtAdapter.encode(userWithoutPassword, '8h')
+      var refreshToken = this.secondaryJwtAdapter.encode(userWithoutPassword, '7d')
 
       return ok({
         ...userWithoutPassword,
@@ -93,18 +94,13 @@ export class UserController {
       })
     } else {
       // check if refresh token is valid
-      console.log(body.refreshToken)
       var isValid = this.secondaryJwtAdapter.validate(body.refreshToken!)
 
       if (!isValid) {
         return badRequest(new Error('Invalid refresh token'))
       }
 
-      console.log(body.refreshToken)
-
       var decoded = this.secondaryJwtAdapter.decode(body.refreshToken!)
-
-      console.log(decoded)
 
       var user = await prisma.user.findUnique({
         where: {
@@ -118,7 +114,6 @@ export class UserController {
 
       var token = this.jwtAdapter.encode(user, '8h')
       var refreshToken = this.secondaryJwtAdapter.encode(user, '7d')
-      var userWithoutPassword = omit(user, ['password'])
 
       return ok({
         token,
