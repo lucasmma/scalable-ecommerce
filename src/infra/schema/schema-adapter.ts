@@ -8,16 +8,11 @@ export class SchemaAdapter implements SchemaProtocol {
     this.schema = newSchema
   }
 
-  async validate (value: string): Promise<boolean> {
-    return this.schema.safeParse(value).success
-  }
-
-  async parse <T extends z.AnyZodObject>(value: string): Promise<T | Error> {
-    try {
-      var result = (this.schema as T).parse(value)
-      return result as T
-    } catch (error) {
-      throw error
+  validate (value: string): { sucess: boolean, error?: Error} {
+    var res = this.schema.safeParse(value)
+    return {
+      sucess: res.success,
+      error: res.error
     }
   }
 }
