@@ -27,6 +27,8 @@ model User {
   role                Role
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+
+  Order Order[]
 }
 
 model ProductCategory {
@@ -51,4 +53,39 @@ model Product {
 
   categoryId          String?
   category            ProductCategory? @relation(fields: [categoryId], references: [id])
+
+  OrderItem OrderItem[]
+}
+
+model OrderItem {
+  id                  String   @id @default(cuid())
+  quantity            Int
+  price               Int
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  orderId             String
+  order               Order @relation(fields: [orderId], references: [id])
+
+  productId           String
+  product             Product @relation(fields: [productId], references: [id])
+}
+
+enum OrderStatus {
+  CART
+  CONFIRMED
+  DELIVERED
+}
+
+model Order {
+  id                  String   @id @default(cuid())
+  total               Int
+  status              OrderStatus
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  userId              String
+  user                User @relation(fields: [userId], references: [id])
+
+  items               OrderItem[]
 }
