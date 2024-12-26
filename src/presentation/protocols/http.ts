@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { User } from '@prisma/client'
 
 export interface HttpResponse {
   statusCode: number
@@ -9,6 +9,6 @@ export interface HttpRequest<T = any> {
   body?: T
   headers?: any
   auth?: {
-    user: Prisma.UserFieldRefs
+    user: User
   }
 }
