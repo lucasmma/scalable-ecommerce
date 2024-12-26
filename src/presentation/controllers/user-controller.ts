@@ -4,6 +4,9 @@ import { badRequest, ok } from '../helpers/http-helper'
 import prisma from '../../main/config/prisma'
 import env from '../../main/config/env'
 import { JwtAdapter } from '../../infra/auth/jwt-adapter'
+import { createUserSchema } from '../../main/schemas/user/create-user-schema'
+import { oauthTokenSchema } from '../../main/schemas/user/oauth-token-schema'
+import { omit } from '../helpers/omit-field'
 
 export class UserController {
   constructor(private readonly bcrypt: BcryptAdapter,
@@ -13,20 +16,10 @@ export class UserController {
     this.jwtAdapter = jwtAdapter
     this.secondaryJwtAdapter = secondaryJwtAdapter
   }
-
   async createUser(
-    request: HttpRequest,
+    request: HttpRequest<( typeof createUserSchema._output)>,
   ): Promise<HttpResponse> {
-    const { body } = request
-
-
-    // check if confirmation password is equal to password
-    if (body.password !== body.passwordConfirmation) {
-      return badRequest(new Error('Passwords do not match'))
-    }
-
-    // check if email is valid
-    
+    const body = request.body!
 
     // check duplicates in database
     var existentUser = await prisma.user.findUnique({
@@ -41,11 +34,12 @@ export class UserController {
 
     const hashedPassword = await this.bcrypt.encrypt(body.password)
 
-    delete body.passwordConfirmation; delete body.password
+    const bodyWithoutPassword = omit(body, ['password', 'passwordConfirmation'])
+    // reomve password from body
 
     const user = await prisma.user.create({
       data: {
-        ...body,
+        ...bodyWithoutPassword,
         role: 'USER',
         password: hashedPassword,
       }
@@ -53,10 +47,7 @@ export class UserController {
 
     // TODO: implement jwt management
 
-    const {
-      password,
-      ...userWithoutPassword
-    } = user
+    const userWithoutPassword = omit(user, ['password'])
 
     var token = this.jwtAdapter.encode(userWithoutPassword, '8h')
     var refreshToken = this.secondaryJwtAdapter.encode(userWithoutPassword, '7d')
