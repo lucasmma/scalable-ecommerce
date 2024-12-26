@@ -9,7 +9,12 @@ export class BcryptAdapter implements EncrypterProtocol {
   }
 
   async encrypt (value: string): Promise<string> {
-    const hash = bcrypt.hash(value, this.salt)
-    return await new Promise(resolve => resolve(hash))
+    const hash = await bcrypt.hash(value, this.salt)
+    return hash
+  }
+
+  async compare (value: string, hash: string): Promise<boolean> {
+    const isValid = await bcrypt.compare(value, hash)
+    return isValid
   }
 }
