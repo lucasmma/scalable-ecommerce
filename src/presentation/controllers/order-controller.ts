@@ -122,13 +122,23 @@ export class OrderController {
     request: HttpRequest,
   ): Promise<HttpResponse> {
     const { id } = request.params!
-    var order = await prisma.order.findFirst({
-      where: {
-        id
+    const { user } = request.auth!
+
+    var where: {id: string, userId?: string} = {
+      id
+    }
+
+    if(user.role !== 'ADMIN') {
+      where = {
+        id,
+        userId: user.id
       }
+    }
+
+    var order = await prisma.order.findFirst({
+      where
     })
 
     return ok(order)
   }
-
 }
