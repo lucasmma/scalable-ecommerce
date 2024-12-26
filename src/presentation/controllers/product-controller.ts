@@ -38,4 +38,23 @@ export class ProductController {
     return ok(products)
     
   }
+
+  async editProduct(request: HttpRequest): Promise<HttpResponse> {
+
+    const body = request.body!
+    const { id } = request.params!
+    
+
+    const product = await prisma.product.update({
+      where: {
+        id
+      },
+      data: {
+        ...body
+      }
+    })
+
+    return ok(product)
+
+  }
 }
