@@ -21,7 +21,7 @@ export class UserController {
 
 
     // check if confirmation password is equal to password
-    if (body.password !== body.confirmationPassword) {
+    if (body.password !== body.passwordConfirmation) {
       return badRequest(new Error('Passwords do not match'))
     }
 
