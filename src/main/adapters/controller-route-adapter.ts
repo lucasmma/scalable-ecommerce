@@ -15,6 +15,7 @@ export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest
     const httpRequest: HttpRequest = {
       body: req.body,
       auth: req.auth,
+      query: req.query,
       params: req.params,
       headers: req.headers
     }
