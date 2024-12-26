@@ -1,8 +1,9 @@
 import { HttpRequest, HttpResponse } from '../../presentation/protocols'
 import { Response } from 'express'
-import { ok, serverError } from '../../presentation/helpers/http-helper'
+import { badRequest, ok, serverError } from '../../presentation/helpers/http-helper'
+import { SchemaProtocol } from '../../data/protocols/schema'
 
-export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest) => Promise<HttpResponse>) => {
+export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest) => Promise<HttpResponse>, schema?: SchemaProtocol) => {
   return async (req: any, res: Response) => {
     const httpRequest: HttpRequest = {
       body: req.body,
@@ -10,6 +11,19 @@ export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest
       headers: req.headers
     }
     let httpResponse: HttpResponse = ok({})
+
+    if(schema) {
+      try {
+        schema.parse(httpRequest.body)
+      } catch (error) {
+        httpResponse = badRequest(error as Error)
+        res.status(httpResponse.statusCode).json({
+          error: httpResponse.body.message
+        })
+        return
+      }
+    }
+
     try {
       httpResponse = await handle.call(controller, httpRequest)
     } catch (error) {
@@ -18,6 +32,7 @@ export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest
         message: 'Internal server error'
       } as Error)
     }
+
     if (httpResponse.statusCode === 200) {
       res.status(httpResponse.statusCode).json(httpResponse.body)
     } else {
