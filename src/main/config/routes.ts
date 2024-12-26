@@ -2,6 +2,7 @@ import { Express, Router } from 'express'
 import userRoutes from '../routes/user-routes'
 import productRoutes from '../routes/product-routes'
 import productCategoryRoutes from '../routes/product-category-route'
+import orderRoutes from '../routes/order-routes'
 
 export default (app: Express): void => {
   const router = Router()
@@ -9,4 +10,5 @@ export default (app: Express): void => {
   userRoutes(router)
   productRoutes(router)
   productCategoryRoutes(router)
+  orderRoutes(router)
 }
