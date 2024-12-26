@@ -11,7 +11,7 @@ import { editUserSchema } from '../../main/schemas/user/edit-user-schema'
 
 export class UserController {
   constructor(private readonly bcrypt: BcryptAdapter,
-     private readonly jwtAdapter: JwtAdapter,
+     readonly jwtAdapter: JwtAdapter,
      private readonly secondaryJwtAdapter: JwtAdapter) {
     this.bcrypt = bcrypt
     this.jwtAdapter = jwtAdapter
@@ -120,5 +120,25 @@ export class UserController {
         refreshToken
       })
     }
+  }
+
+  async editUser(
+    request: HttpRequest<(typeof editUserSchema._output)>,
+  ): Promise<HttpResponse> {
+    const user = request.auth!.user
+    console.log(user)
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        ...request.body!,
+      }
+    })
+
+    var userWithoutPassword = omit(updatedUser, ['password'])
+
+    return ok(userWithoutPassword)
   }
 }
