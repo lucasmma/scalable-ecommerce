@@ -39,6 +39,16 @@ export class ProductController {
     
   }
 
+  async getProductsByCategory(request: HttpRequest): Promise<HttpResponse> {
+    const { id } = request.params!
+
+    var products = await prisma.product.findMany({
+      where: {
+        categoryId: id
+      }})
+    return ok(products)
+  }
+
   async editProduct(request: HttpRequest): Promise<HttpResponse> {
     const {
       categoryId, ...bodyWithoutCategory
