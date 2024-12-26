@@ -1,23 +1,23 @@
 import { z } from 'zod'
 
 export const oauthTokenSchema = z.object({
-  grantType: z.enum(['clients_credentials', 'refresh_token']),
+  grantType: z.enum(['client_credentials', 'refresh_token']),
   email: z.string().optional(),
   password: z.string().optional(),
   refreshToken: z.string().optional(),
 }).superRefine((data, ctx) => {
-  if (data.grantType === 'clients_credentials') {
+  if (data.grantType === 'client_credentials') {
     if (!data.email) {
       ctx.addIssue({
         path: ['email'],
-        message: 'email is required when grantType is "clients_credentials"',
+        message: 'email is required when grantType is "client_credentials"',
         code: z.ZodIssueCode.custom,
       });
     }
     if (!data.password) {
       ctx.addIssue({
         path: ['password'],
-        message: 'password is required when grantType is "clients_credentials"',
+        message: 'password is required when grantType is "client_credentials"',
         code: z.ZodIssueCode.custom,
       });
     }
