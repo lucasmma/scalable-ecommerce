@@ -58,4 +58,72 @@ export class UserController {
       refreshToken
     })
   }
+
+  async oauthToken(
+    request: HttpRequest<(typeof oauthTokenSchema._output)>,
+  ): Promise<HttpResponse> {
+    const body = request.body!
+
+    if(body.grantType === 'client_credentials') {
+      // check if client exists
+      var user = await prisma.user.findUnique({
+        where: {
+          email: body.email,
+        }
+      })
+
+      if (!user) {
+        return badRequest(new Error('Invalid credentials'))
+      }
+
+      const passwordMatch = await this.bcrypt.compare(body.password!, user.password)
+
+      if (!passwordMatch) {
+        return badRequest(new Error('Invalid credentials'))
+      }
+
+      var token = this.jwtAdapter.encode(user, '8h')
+      var refreshToken = this.secondaryJwtAdapter.encode(user, '7d')
+      var userWithoutPassword = omit(user, ['password'])
+
+      return ok({
+        ...userWithoutPassword,
+        token,
+        refreshToken
+      })
+    } else {
+      // check if refresh token is valid
+      console.log(body.refreshToken)
+      var isValid = this.secondaryJwtAdapter.validate(body.refreshToken!)
+
+      if (!isValid) {
+        return badRequest(new Error('Invalid refresh token'))
+      }
+
+      console.log(body.refreshToken)
+
+      var decoded = this.secondaryJwtAdapter.decode(body.refreshToken!)
+
+      console.log(decoded)
+
+      var user = await prisma.user.findUnique({
+        where: {
+          id: decoded.id,
+        }
+      })
+
+      if (!user) {
+        return badRequest(new Error('Invalid refresh token'))
+      }
+
+      var token = this.jwtAdapter.encode(user, '8h')
+      var refreshToken = this.secondaryJwtAdapter.encode(user, '7d')
+      var userWithoutPassword = omit(user, ['password'])
+
+      return ok({
+        token,
+        refreshToken
+      })
+    }
+  }
 }
