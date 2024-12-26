@@ -16,5 +16,5 @@ export default (router: Router): void => {
   router.post(baseRoute, adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.createProductCategory, { body: createProductCategorySchema }))
   router.put(baseRoute + '/:id', adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.editProductCategory, { param: idSchema, body: editProductCategorySchema }))
   router.get(baseRoute, adaptAuthRoute(jwtAdapter) , adaptRoute(controller, controller.getProductCategories, { query: queryListProductCategorySchema}))
-  router.delete(baseRoute + '/:id', adaptAuthRoute(jwtAdapter) , adaptRoute(controller, controller.deleteProductCategory, { param: idSchema }))
+  router.delete(baseRoute + '/:id', adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.deleteProductCategory, { param: idSchema }))
 }
