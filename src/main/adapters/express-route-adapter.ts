@@ -13,10 +13,9 @@ export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest
     let httpResponse: HttpResponse = ok({})
 
     if(schema) {
-      try {
-        schema.parse(httpRequest.body)
-      } catch (error) {
-        httpResponse = badRequest(error as Error)
+      var schemaValidation = await schema.validate(httpRequest.body)
+      if(!schemaValidation.sucess){
+        httpResponse = badRequest(schemaValidation.error!)
         res.status(httpResponse.statusCode).json({
           error: httpResponse.body.message
         })
