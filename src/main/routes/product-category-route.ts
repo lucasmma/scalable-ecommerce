@@ -13,7 +13,7 @@ export default (router: Router): void => {
   const controller = makeProductCategoryController()
   const jwtAdapter = new JwtAdapter(env.JWT_SECRET)
   router.post(baseRoute, adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.createProductCategory, { body: createProductCategorySchema }))
-  router.put(baseRoute + '/:id', adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.editProductCategory, { param:idSchema, body: editProductCategorySchema }))
+  router.put(baseRoute + '/:id', adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.editProductCategory, { param: idSchema, body: editProductCategorySchema }))
   router.get(baseRoute, adaptAuthRoute(jwtAdapter) , adaptRoute(controller, controller.getProductCategories))
   router.delete(baseRoute + '/:id', adaptAuthRoute(jwtAdapter) , adaptRoute(controller, controller.deleteProductCategory, { param: idSchema }))
 }

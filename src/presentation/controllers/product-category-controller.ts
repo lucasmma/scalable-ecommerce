@@ -42,7 +42,7 @@ export class ProductCategoryController {
   async deleteProductCategory(
     request: HttpRequest,
   ): Promise<HttpResponse> {
-    await prisma.productCategory.update({
+    const productCategory = await prisma.productCategory.update({
       where: {
         id: request.params!.id
       },
@@ -51,7 +51,7 @@ export class ProductCategoryController {
       }
     })
 
-    return ok({})
+    return ok(productCategory)
   }
 
   async getProductCategories(
