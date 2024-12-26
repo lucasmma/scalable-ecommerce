@@ -2,9 +2,9 @@ import { SchemaProtocol } from '../../data/protocols/schema'
 import { z } from 'zod'
 
 export class SchemaAdapter implements SchemaProtocol {
-  private readonly schema: z.AnyZodObject
+  private readonly schema: z.AnyZodObject | z.ZodEffects<any, any>
 
-  constructor (newSchema: z.AnyZodObject) {
+  constructor (newSchema: z.AnyZodObject | z.ZodEffects<any, any>) {
     this.schema = newSchema
   }
 
