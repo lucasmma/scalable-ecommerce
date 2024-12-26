@@ -14,7 +14,11 @@ export class JwtAdapter implements JwtProtocol {
   }
   
   validate (token: string): Omit<User, 'password'> {
-    return jwt.verify(token, this.secret) as Omit<User, 'password'>
+    try {
+      return jwt.verify(token, this.secret) as Omit<User, 'password'>
+    } catch (error) {
+      throw new Error('Invalid token')
+    }
   }
 
   decode (token: string): Omit<User, 'password'> {
