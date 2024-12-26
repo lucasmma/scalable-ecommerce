@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt'
-import { Encrypter } from '../../data/protocols/encrypter'
+import { EncrypterProtocol } from '../../data/protocols/encrypter'
 
-export class BcryptAdapter implements Encrypter {
+export class BcryptAdapter implements EncrypterProtocol {
   private readonly salt: number
 
   constructor (salt: number) {
