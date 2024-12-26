@@ -126,7 +126,6 @@ export class UserController {
     request: HttpRequest<(typeof editUserSchema._output)>,
   ): Promise<HttpResponse> {
     const user = request.auth!.user
-    console.log(user)
 
     const updatedUser = await prisma.user.update({
       where: {
