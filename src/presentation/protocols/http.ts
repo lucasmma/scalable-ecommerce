@@ -8,6 +8,9 @@ export interface HttpResponse {
 export interface HttpRequest<T = any> {
   body?: T
   headers?: any
+  params?: {
+    [key: string]: string
+  }
   auth?: {
     user: Omit<User, 'password'>
   }
