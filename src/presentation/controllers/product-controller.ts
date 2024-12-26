@@ -40,10 +40,8 @@ export class ProductController {
   }
 
   async editProduct(request: HttpRequest): Promise<HttpResponse> {
-
     const body = request.body!
     const { id } = request.params!
-    
 
     const product = await prisma.product.update({
       where: {
@@ -55,6 +53,20 @@ export class ProductController {
     })
 
     return ok(product)
+  }
 
+  async deleteProduct(request: HttpRequest): Promise<HttpResponse> {
+    const { id } = request.params!
+
+    await prisma.product.update({
+      where: {
+        id
+      },
+      data: {
+        deleted: true
+      }
+    })
+
+    return ok({})
   }
 }
