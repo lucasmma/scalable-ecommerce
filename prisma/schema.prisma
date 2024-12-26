@@ -29,6 +29,16 @@ model User {
   updatedAt           DateTime @updatedAt
 }
 
+model ProductCategory {
+  id                  String   @id @default(cuid())
+  name                String
+  deleted             Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  products            Product[]
+}
+
 model Product {
   id                  String   @id @default(cuid())
   name                String
@@ -38,4 +48,7 @@ model Product {
   deleted             Boolean  @default(false)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+
+  categoryId          String?
+  category            ProductCategory? @relation(fields: [categoryId], references: [id])
 }
