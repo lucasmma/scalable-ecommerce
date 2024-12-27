@@ -80,6 +80,7 @@ enum OrderStatus {
 model Order {
   id                  String   @id @default(cuid())
   total               Int
+  address             String?
   status              OrderStatus
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
