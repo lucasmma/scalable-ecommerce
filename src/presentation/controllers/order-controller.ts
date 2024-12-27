@@ -151,6 +151,7 @@ export class OrderController {
       },
       data: {
         status: 'CONFIRMED',
+        address
       }
     })
 
