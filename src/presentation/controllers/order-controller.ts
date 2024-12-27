@@ -18,7 +18,11 @@ export class OrderController {
   
     const include = {
       items: {
-        include: { product: true },
+        include: { 
+          product: {
+            select: { name: true, description: true, price: true }
+          } 
+        },
       },
     };
   
@@ -215,7 +219,19 @@ export class OrderController {
     }
 
     var order = await prisma.order.findFirst({
-      where
+      where, include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                description: true,
+                price: true,
+              }
+            }
+          }
+        }
+      }
     })
 
     return ok(order)
