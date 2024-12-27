@@ -28,3 +28,10 @@ export const forbidden = (): HttpResponse => ({
     error: 'Forbidden'
   }
 })
+
+export const toManyRequests = (): HttpResponse => ({
+  statusCode: 429,
+  body: {
+    error: 'To many requests'
+  }
+})
