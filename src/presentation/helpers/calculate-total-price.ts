@@ -1,5 +1,7 @@
 import { Product } from '@prisma/client'
 
-export function calculateTotalPriceFromProducts(items: { product: Product, quantity: number }[]) {
+type ProductWithRequiredPrice = Partial<Product> & { price: number };
+
+export function calculateTotalPriceFromProducts(items: { product: ProductWithRequiredPrice, quantity: number }[]) {
   return items.reduce((acc, item) => acc + (item.product.price * item.quantity), 0)
 }
