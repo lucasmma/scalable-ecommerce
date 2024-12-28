@@ -5,9 +5,11 @@ import { updateCartItemsSchema } from '../../main/schemas/order/update-cart-item
 import { payCartSchema } from '../../main/schemas/order/pay-cart-schema'
 import { calculateTotalPriceFromProducts } from '../helpers/calculate-total-price'
 import { StockMethods } from '../../domain/usecases/stock-methods'
+import { MailSenderAdapter } from '../../infra/mail/mail-sender-adapter'
 
 export class OrderController {
-  constructor(private readonly stockMethods: StockMethods) {
+  constructor(private readonly stockMethods: StockMethods,
+    private readonly mailSenderAdapter: MailSenderAdapter) {
     this.stockMethods = stockMethods
   }
 
@@ -166,8 +168,9 @@ export class OrderController {
         id
       },
       include: {
-        items: true
-      }
+        items: true,
+        user: true
+      },
     })
 
     if(!order || order.total === 0) {
@@ -184,23 +187,29 @@ export class OrderController {
       quantity: item.quantity,
     }));
 
-    const hasStock = await this.stockMethods.consumeStock(productsUsed);
+    // const hasStock = await this.stockMethods.consumeStock(productsUsed);
 
-    if (!hasStock) {
-      return badRequest(new Error('Insufficient stock'));
-    }
+    // if (!hasStock) {
+    //   return badRequest(new Error('Insufficient stock'));
+    // }
 
-    const newOrder = await prisma.order.update({
-      where: {
-        id
-      },
-      data: {
-        status: 'CONFIRMED',
-        address
-      }
+    // const newOrder = await prisma.order.update({
+    //   where: {
+    //     id
+    //   },
+    //   data: {
+    //     status: 'CONFIRMED',
+    //     address
+    //   }
+    // })
+
+    await this.mailSenderAdapter.send({
+      to: order.user.email,
+      subject: 'Order confirmation',
+      html: `Your order ${order.id} has been confirmed. It will be delivered soon.`
     })
 
-    return ok(newOrder)
+    return ok({})
   }
 
   async deliveryOrder (
