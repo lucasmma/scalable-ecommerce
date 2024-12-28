@@ -8,7 +8,8 @@ const env = {
   NODEMAILER_HOST: process.env.NODEMAILER_HOST ?? '',
   NODEMAILER_PORT: parseInt(process.env.NODEMAILER_PORT as string, 10),
   NODEMAILER_USER: process.env.NODEMAILER_USER ?? '',
-  NODEMAILER_PASS: process.env.NODEMAILER_PASS ?? ''
+  NODEMAILER_PASS: process.env.NODEMAILER_PASS ?? '',
+  REDIS_URL: process.env.REDIS_URL ?? '',
 }
 
 export default env
