@@ -28,25 +28,33 @@ export class ProductController {
     
   }
 
-  async getProducts(
-    request: HttpRequest,
-  ): Promise<HttpResponse> {
-    var products: Product[] | null = await this.cacheAdapter.get<Product[]>('products')
+  async getProducts(request: HttpRequest): Promise<HttpResponse> {
+    const isAdmin = request.auth?.user.role === 'ADMIN';
     
-    if(!products){
-      products = await prisma.product.findMany()
-      await this.cacheAdapter.set<Product[]>('products', products)
+    // If the user is not an admin, check the cache first
+    if (!isAdmin) {
+      const cachedProducts = await this.cacheAdapter.get<Product[]>('products');
+      if (cachedProducts) {
+        return ok(cachedProducts);
+      }
     }
-
-    if(request.auth?.user.role !== 'ADMIN'){
-      ok(products.map(product => {
-        return omit(product, ['deleted'])
-      }))
+  
+    // Set the where clause for non-admins to filter out deleted products
+    const where = isAdmin ? {} : { deleted: false };
+  
+    // Fetch products from the database
+    const products = await prisma.product.findMany({ where });
+  
+    // If the user is not an admin, omit the 'deleted' field and cache the result
+    if (!isAdmin) {
+      const filteredProducts = products.map(product => omit(product, ['deleted']));
+      await this.cacheAdapter.set('products', filteredProducts);
+      return ok(filteredProducts);
     }
-
-    return ok(products)
-    
-  }
+  
+    // Return products as-is for admin users
+    return ok(products);
+  }  
 
   async getProductsByCategory(request: HttpRequest): Promise<HttpResponse> {
     const { id } = request.params!
@@ -84,6 +92,8 @@ export class ProductController {
         ...connectCategory
       }
     })
+
+    await this.cacheAdapter.delete('products')
 
     return ok(product)
   }
