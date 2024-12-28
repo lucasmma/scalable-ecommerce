@@ -3,8 +3,7 @@ import { badRequest, ok } from '../helpers/http-helper'
 import prisma from '../../main/config/prisma'
 import { updateCartItemsSchema } from '../../main/schemas/order/update-cart-items-schema'
 import { payCartSchema } from '../../main/schemas/order/pay-cart-schema'
-import { idSchema } from '../../main/schemas/id-schema'
-import { Order } from '@prisma/client'
+import { calculateTotalPriceFromProducts } from '../helpers/calculate-total-price'
 
 export class OrderController {
   constructor() {
@@ -31,6 +30,27 @@ export class OrderController {
         where: { userId: user.id, status: 'CART' },
         include,
       });
+
+      var totalSold = order?.total ?? 0
+
+      var itemsToFind = body.addProducts?.map(product => product.productId) ?? []
+
+      // remove products that are already in the cart
+      if(order) {
+        itemsToFind = itemsToFind.filter(productId => !order!.items.some(item => item.productId === productId))
+      }
+
+      var products = await prisma.product.findMany({
+        where: {
+          id: {
+            in: itemsToFind
+          }
+        },
+      })
+
+
+
+
   
       if (!order) {
         if (body.removeProducts && body.removeProducts.length > 0) {
@@ -38,17 +58,20 @@ export class OrderController {
         }
   
         // Prepare initial items for a new cart
-        const initialItems = body.addProducts!.map((product) => ({
-          productId: product.productId,
-          quantity: product.quantity,
-          price: 0, // TODO: Calculate price
-        }));
+        const initialItems = body.addProducts!.map((product) => {
+          var productPrice = products.find(p => p.id === product.productId)!.price
+          return {
+            productId: product.productId,
+            quantity: product.quantity,
+            price: productPrice * product.quantity, // TODO: Calculate price
+          }
+        });
   
         order = await prisma.order.create({
           data: {
             userId: user.id,
             status: 'CART',
-            total: 0,
+            total: calculateTotalPriceFromProducts(products.map(product => ({ product, quantity: body.addProducts!.find(p => p.productId ==product.id)!.quantity }))),
             items: { createMany: { data: initialItems } },
           },
           include,
@@ -57,12 +80,12 @@ export class OrderController {
         return ok(order);
       }
   
-      const items = order.items;
+      const itemsAlreadyInCart = order.items;
   
       // Handle product removal
       if (body.removeProducts && body.removeProducts.length > 0) {
         const invalidRemovals = body.removeProducts.filter(
-          (removeProduct) => !items.some((item) => item.productId === removeProduct)
+          (removeProduct) => !itemsAlreadyInCart.some((item) => item.productId === removeProduct)
         );
   
         if (invalidRemovals.length > 0) {
@@ -78,37 +101,47 @@ export class OrderController {
       }
   
       // Handle product addition
+      const updatedItems = []
+      const productsToCreate = []
       if (body.addProducts && body.addProducts.length > 0) {
-        const existingProductIds = new Set(items.map((item) => item.productId));
+        const existingProductIds = new Set(itemsAlreadyInCart.map((item) => item.productId));
   
-        const productsToUpdate = [];
-        const productsToCreate = [];
+        const itemsToUpdate = [];
   
-        for (const product of body.addProducts) {
-          if (existingProductIds.has(product.productId)) {
-            productsToUpdate.push(product);
+        for (const addProduct of body.addProducts) {
+          const product = products.find(p => p.id === addProduct.productId)!
+          if (existingProductIds.has(addProduct.productId)) {
+            itemsToUpdate.push(addProduct);
           } else {
             productsToCreate.push({
               orderId: order.id,
-              productId: product.productId,
-              quantity: product.quantity,
-              price: 0, // TODO: Calculate price
+              productId: addProduct.productId,
+              quantity: addProduct.quantity,
+              price: product.price * addProduct.quantity, // TODO: Calculate price
             });
           }
         }
   
         // Update existing items
-        if (productsToUpdate.length > 0) {
-          const updatePromises = productsToUpdate.map((product) =>
-            prisma.orderItem.updateMany({
+        if (itemsToUpdate.length > 0) {
+          for (const product of itemsToUpdate) {
+            const item = itemsAlreadyInCart.find((item) => item.productId === product.productId);
+            console.log
+            const updatedItem = await prisma.orderItem.update({
               where: {
-                orderId: order!.id,
-                productId: product.productId,
+                id: item!.id,
               },
-              data: { quantity: { increment: product.quantity } },
-            })
-          );
-          await Promise.all(updatePromises);
+              data: {
+                quantity: {
+                  increment: product.quantity,
+                },
+                price: {
+                  increment: product.quantity * item!.product.price
+                }, // TODO: Calculate price
+              },
+            });
+            updatedItems.push(updatedItem);
+          }
         }
   
         // Create new items
@@ -120,8 +153,20 @@ export class OrderController {
       }
   
       // Refresh the order with updated items
-      const updatedOrder = await prisma.order.findUnique({
-        where: { id: order.id },
+      // get all updated and created items to calculate the total price
+      const updatedAndCreatedItems = [...updatedItems.map((item) => ({
+        product: itemsAlreadyInCart.find(i => i.id === item.id)!.product,
+        quantity: item.quantity,
+      })), ...productsToCreate.map(item => ({
+        product: products.find(p => p.id === item.productId)!,
+        quantity: item.quantity,
+      }))];
+
+      const updatedOrder = await prisma.order.update({
+        where: { id: order!.id },
+        data: {
+          total: calculateTotalPriceFromProducts(updatedAndCreatedItems),
+        },
         include,
       });
   
