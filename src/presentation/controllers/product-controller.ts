@@ -1,16 +1,21 @@
-import { BcryptAdapter } from '../../infra/criptography/bcrypt-adapter'
 import { HttpRequest, HttpResponse } from '../protocols'
 import { ok } from '../helpers/http-helper'
 import prisma from '../../main/config/prisma'
 import { createProductSchema } from '../../main/schemas/product/create-product-schema'
 import { omit } from '../helpers/omit-field'
+import { CacheAdapter } from '../../infra/cache/cache-adapter'
+import { Product } from '@prisma/client'
 
 export class ProductController {
-  constructor() {
+  constructor(private readonly cacheAdapter: CacheAdapter) {
+    this.cacheAdapter = cacheAdapter
   }
   async createProduct(
     request: HttpRequest<( typeof createProductSchema._output)>,
   ): Promise<HttpResponse> {
+
+    await this.cacheAdapter.delete('products')
+
     const body = request.body!
 
     const product = await prisma.product.create({
