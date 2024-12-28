@@ -10,5 +10,5 @@ export default (router: Router): void => {
   const jwtAdapter = new JwtAdapter(env.JWT_SECRET)
   const controller = makeStockController()
   router.post(baseRoute + '/:id/add' , adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.addStockFromProduct, { param: idSchema }))
-  router.post(baseRoute + '/:id/remove', adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.addStockFromProduct, { param: idSchema }))
+  router.post(baseRoute + '/:id/remove', adaptAuthRoute(jwtAdapter, 'ADMIN') , adaptRoute(controller, controller.removeStockFromProduct, { param: idSchema }))
 }
