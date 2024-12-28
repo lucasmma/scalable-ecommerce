@@ -13,9 +13,6 @@ export class ProductController {
   async createProduct(
     request: HttpRequest<( typeof createProductSchema._output)>,
   ): Promise<HttpResponse> {
-
-    await this.cacheAdapter.delete('products')
-
     const body = request.body!
 
     const product = await prisma.product.create({
@@ -24,6 +21,7 @@ export class ProductController {
       }
     })
 
+    await this.cacheAdapter.set<Product>(product.id, product)
     return ok(product)
     
   }
@@ -33,7 +31,7 @@ export class ProductController {
     
     // If the user is not an admin, check the cache first
     if (!isAdmin) {
-      const cachedProducts = await this.cacheAdapter.get<Product[]>('products');
+      const cachedProducts = await this.cacheAdapter.getMany<Product[]>();
       if (cachedProducts) {
         return ok(cachedProducts);
       }
@@ -45,14 +43,12 @@ export class ProductController {
     // Fetch products from the database
     const products = await prisma.product.findMany({ where });
   
-    // If the user is not an admin, omit the 'deleted' field and cache the result
+    // If the user is not an admin, omit the 'deleted' field
     if (!isAdmin) {
       const filteredProducts = products.map(product => omit(product, ['deleted']));
-      await this.cacheAdapter.set('products', filteredProducts);
       return ok(filteredProducts);
     }
   
-    // Return products as-is for admin users
     return ok(products);
   }  
 
@@ -93,7 +89,7 @@ export class ProductController {
       }
     })
 
-    await this.cacheAdapter.delete('products')
+    await this.cacheAdapter.set<Product>(id, product)
 
     return ok(product)
   }
@@ -110,6 +106,7 @@ export class ProductController {
       }
     })
 
+    await this.cacheAdapter.delete(id)
     return ok({})
   }
 }
