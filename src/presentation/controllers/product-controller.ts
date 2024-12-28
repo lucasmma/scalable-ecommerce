@@ -31,7 +31,12 @@ export class ProductController {
   async getProducts(
     request: HttpRequest,
   ): Promise<HttpResponse> {
-    var products = await prisma.product.findMany()
+    var products: Product[] | null = await this.cacheAdapter.get<Product[]>('products')
+    
+    if(!products){
+      products = await prisma.product.findMany()
+      await this.cacheAdapter.set<Product[]>('products', products)
+    }
 
     if(request.auth?.user.role !== 'ADMIN'){
       ok(products.map(product => {
