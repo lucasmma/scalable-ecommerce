@@ -36,14 +36,14 @@ export class CacheAdapter implements CacheProtocol {
     return exists === 1;
   }
 
-  async getMany<T>(prefixKey: string): Promise<T[] | null> {
+  async getMany<T>(): Promise<T[] | null> {
     const keys: string[] = [];
     let cursor = '0'; // Start cursor for SCAN
     let result: [error: Error | null, result: unknown][] = []; 
   
     // Step 1: Use SCAN to get all keys matching the prefix
     do {
-      const scanResult = await this.redisClient.scan(cursor, 'MATCH', `${prefixKey}*`);
+      const scanResult = await this.redisClient.scan(cursor, 'MATCH', `${this.prefix}*`);
       cursor = scanResult[0]; // Update cursor
       console.log('cursor:', cursor);
       keys.push(...scanResult[1]); // Add matching keys to the list
