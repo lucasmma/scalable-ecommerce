@@ -7,7 +7,7 @@ import { calculateTotalPriceFromProducts } from '../helpers/calculate-total-pric
 import { StockMethods } from '../../domain/usecases/stock-methods'
 import { MailSenderAdapter } from '../../infra/mail/mail-sender-adapter'
 import { CacheProtocol } from '../../data/protocols/cache'
-import { Order, OrderItem } from '@prisma/client'
+import { Order, OrderItem, Product } from '@prisma/client'
 
 export class OrderController {
   constructor(private readonly stockMethods: StockMethods,
@@ -26,7 +26,7 @@ export class OrderController {
       items: {
         include: { 
           product: {
-            select: { name: true, description: true, price: true }
+            select: { id:true, name: true, description: true, price: true }
           } 
         },
       },
@@ -34,7 +34,7 @@ export class OrderController {
   
     return prisma.$transaction(async (prisma) => {
       // Fetch current cart
-      var order = await this.cartCacheAdapter.get<(Order & {items: (OrderItem & {product: {name: string, description: string, price: number}})[]})>(user.id)
+      var order = await this.cartCacheAdapter.get<(Order & {items: (OrderItem & {product: { id: string, name: string, description: string, price: number}})[]})>(user.id)
 
       if(!order) {
         order = await prisma.order.findFirst({
@@ -49,7 +49,7 @@ export class OrderController {
   
       // Collect product IDs to fetch
       let itemsToFind = body.addProducts?.map((product) => product.productId) ?? [];
-      // remove products that are already in the cart
+      // if the product is already in the cart and in the addProduct dont remove it
       if (order) {
         itemsToFind = itemsToFind.filter((productId) => !order!.items.some((item) => item.productId === productId));
       }
@@ -57,6 +57,7 @@ export class OrderController {
       // Fetch products for price calculations
       const products = await prisma.product.findMany({
         where: { id: { in: itemsToFind } },
+        select: { id: true, price: true, description: true, name: true },
       });
   
       if (!order) {
@@ -112,14 +113,17 @@ export class OrderController {
       // Handle product addition
       const itemsToUpdate = [];
       if (body.addProducts?.length) {
-        const existingProductIds = new Set(itemsAlreadyInCart.map((item) => item.productId));
+        const existingProductIds = new Set(itemsAlreadyInCart.filter((item) => !body.removeProducts?.includes(item.productId)).map((item) => item.productId));
   
         for (const product of body.addProducts) {
           if (existingProductIds.has(product.productId)) {
             const productDetails = itemsAlreadyInCart.find(p => p.productId === product.productId)!;
             itemsToUpdate.push({ ...product, price: productDetails.price });
           } else {
-            const productDetails = products.find(p => p.id === product.productId)!;
+            var productDetails = products.find(p => p.id === product.productId)!;
+            if(body.removeProducts?.includes(product.productId)) {
+              productDetails = itemsAlreadyInCart.find(p => p.productId === product.productId)!.product!
+            }
             productsToCreate.push({
               orderId: order.id,
               productId: product.productId,
@@ -132,13 +136,15 @@ export class OrderController {
         // Bulk update existing items
         for (const item of itemsToUpdate) {
           var itemInCart = itemsAlreadyInCart.find((item) => item.productId === item.productId)!
+          console.log(itemInCart)
+          console.log(item)
           const updatedItem = await prisma.orderItem.update({
             where: {
               id: itemInCart.id
             },
             data: {
               quantity: { increment: item.quantity },
-              price: { increment: item.quantity * item.price },
+              price: { increment: item.quantity * itemInCart.product.price },
             },
           });
           itemsUpdated.push(updatedItem);
