@@ -4,9 +4,11 @@ import prisma from '../../main/config/prisma'
 import { updateCartItemsSchema } from '../../main/schemas/order/update-cart-items-schema'
 import { payCartSchema } from '../../main/schemas/order/pay-cart-schema'
 import { calculateTotalPriceFromProducts } from '../helpers/calculate-total-price'
+import { StockMethods } from '../../domain/usecases/stock-methods'
 
 export class OrderController {
-  constructor() {
+  constructor(private readonly stockMethods: StockMethods) {
+    this.stockMethods = stockMethods
   }
 
   async updateCartItems(
@@ -158,10 +160,13 @@ export class OrderController {
     const { address } = request.body!
     const { id } = request.params!
 
-    var order = await prisma.order.findFirst({
+    const order = await prisma.order.findFirst({
       where: {
         userId: user.id,
         id
+      },
+      include: {
+        items: true
       }
     })
 
@@ -174,7 +179,18 @@ export class OrderController {
       return badRequest(new Error('Order is already paid'));
     }
 
-    order = await prisma.order.update({
+    const productsUsed = order.items.map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+    }));
+
+    const hasStock = await this.stockMethods.consumeStock(productsUsed);
+
+    if (!hasStock) {
+      return badRequest(new Error('Insufficient stock'));
+    }
+
+    const newOrder = await prisma.order.update({
       where: {
         id
       },
@@ -184,7 +200,7 @@ export class OrderController {
       }
     })
 
-    return ok(order)
+    return ok(newOrder)
   }
 
   async deliveryOrder (
