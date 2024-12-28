@@ -37,7 +37,7 @@ export class DbStockMethods implements StockMethods {
     return stock
   }
 
-  async validateStock(productsUsed: {
+  async consumeStock(productsUsed: {
     productId: string
     quantity: number
   }[]): Promise<boolean> {
@@ -52,6 +52,15 @@ export class DbStockMethods implements StockMethods {
         return false
       }
     }
+
+    // Update stock
+    for (const product of productsUsed) {
+      await prisma.stock.update({
+        where: { productId: product.productId },
+        data: { quantity: { decrement: product.quantity } }
+      })
+    }
+
     return true
   }
   
