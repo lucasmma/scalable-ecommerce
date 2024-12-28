@@ -6,10 +6,13 @@ import { payCartSchema } from '../../main/schemas/order/pay-cart-schema'
 import { calculateTotalPriceFromProducts } from '../helpers/calculate-total-price'
 import { StockMethods } from '../../domain/usecases/stock-methods'
 import { MailSenderAdapter } from '../../infra/mail/mail-sender-adapter'
+import { CacheProtocol } from '../../data/protocols/cache'
+import { Order, OrderItem } from '@prisma/client'
 
 export class OrderController {
   constructor(private readonly stockMethods: StockMethods,
-    private readonly mailSenderAdapter: MailSenderAdapter) {
+    private readonly mailSenderAdapter: MailSenderAdapter,
+    private readonly cartCacheAdapter: CacheProtocol,) {
     this.stockMethods = stockMethods
   }
 
@@ -31,10 +34,18 @@ export class OrderController {
   
     return prisma.$transaction(async (prisma) => {
       // Fetch current cart
-      let order = await prisma.order.findFirst({
-        where: { userId: user.id, status: 'CART' },
-        include,
-      });
+      var order = await this.cartCacheAdapter.get<(Order & {items: (OrderItem & {product: {name: string, description: string, price: number}})[]})>(user.id)
+
+      if(!order) {
+        order = await prisma.order.findFirst({
+          where: { userId: user.id, status: 'CART' },
+          include,
+        });
+
+        if(!order) {
+          return badRequest(new Error('Cart not found'))
+        }
+      }
   
       // Collect product IDs to fetch
       let itemsToFind = body.addProducts?.map((product) => product.productId) ?? [];
@@ -162,16 +173,20 @@ export class OrderController {
     const { address } = request.body!
     const { id } = request.params!
 
-    const order = await prisma.order.findFirst({
-      where: {
-        userId: user.id,
-        id
-      },
-      include: {
-        items: true,
-        user: true
-      },
-    })
+    var order = await this.cartCacheAdapter.get<(Order & {items: (OrderItem)[]})>(user.id)
+
+    if(!order) {
+      order = await prisma.order.findFirst({
+        where: {
+          userId: user.id,
+          id
+        },
+        include: {
+          items: true,
+        },
+      })
+    }
+    
 
     if(!order || order.total === 0) {
       return badRequest(new Error('Cart is empty')
@@ -187,29 +202,31 @@ export class OrderController {
       quantity: item.quantity,
     }));
 
-    // const hasStock = await this.stockMethods.consumeStock(productsUsed);
+    const hasStock = await this.stockMethods.consumeStock(productsUsed);
 
-    // if (!hasStock) {
-    //   return badRequest(new Error('Insufficient stock'));
-    // }
+    if (!hasStock) {
+      return badRequest(new Error('Insufficient stock'));
+    }
 
-    // const newOrder = await prisma.order.update({
-    //   where: {
-    //     id
-    //   },
-    //   data: {
-    //     status: 'CONFIRMED',
-    //     address
-    //   }
-    // })
+    const newOrder = await prisma.order.update({
+      where: {
+        id
+      },
+      data: {
+        status: 'CONFIRMED',
+        address
+      }
+    })
+
+    await this.cartCacheAdapter.delete(user.id)
 
     await this.mailSenderAdapter.send({
-      to: order.user.email,
+      to: user.email,
       subject: 'Order confirmation',
       html: `Your order ${order.id} has been confirmed. It will be delivered soon.`
     })
 
-    return ok({})
+    return ok(newOrder)
   }
 
   async deliveryOrder (
