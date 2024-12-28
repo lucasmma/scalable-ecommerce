@@ -45,12 +45,11 @@ export class CacheAdapter implements CacheProtocol {
     do {
       const scanResult = await this.redisClient.scan(cursor, 'MATCH', `${this.prefix}*`);
       cursor = scanResult[0]; // Update cursor
-      console.log('cursor:', cursor);
       keys.push(...scanResult[1]); // Add matching keys to the list
     } while (cursor !== '0'); // Continue until the cursor is back to 0 (end of scan)
   
     if (keys.length === 0) {
-      return []; // No matching keys found
+      return null; // No matching keys found
     }
   
     // Use pipelining to fetch all values for the found keys in better performance
