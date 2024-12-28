@@ -166,9 +166,12 @@ export class OrderController {
     })
 
     if(!order || order.total === 0) {
-      return ok({
-        message: 'Cart is empty'
-      })
+      return badRequest(new Error('Cart is empty')
+      )
+    }
+
+    if (order.status !== 'CART') {
+      return badRequest(new Error('Order is already paid'));
     }
 
     order = await prisma.order.update({

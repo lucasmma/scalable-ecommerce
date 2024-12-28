@@ -15,7 +15,7 @@ export default (router: Router): void => {
   const controller = makeOrderController()
 
   router.post(baseRoute + '/update', adaptAuthRoute(jwtAdapter, 'USER'), adaptRoute(controller, controller.updateCartItems, { body: updateCartItemsSchema }))
-  router.post(baseRoute + '/pay', adaptAuthRoute(jwtAdapter, 'USER'), adaptRoute(controller, controller.payCart, { body: payCartSchema }))
+  router.post(baseRoute + '/:id/pay', adaptAuthRoute(jwtAdapter, 'USER'), adaptRoute(controller, controller.payCart, { body: payCartSchema }))
   router.post(baseRoute + '/:id/delivery', adaptAuthRoute(jwtAdapter, 'ADMIN'), adaptRoute(controller, controller.deliveryOrder, { param: idSchema }))
   router.get(baseRoute, adaptAuthRoute(jwtAdapter), adaptRoute(controller, controller.getOrders))
   router.get(baseRoute + '/:id', adaptAuthRoute(jwtAdapter), adaptRoute(controller, controller.getOrder))
