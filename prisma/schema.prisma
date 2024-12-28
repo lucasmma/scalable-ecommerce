@@ -51,7 +51,7 @@ model Product {
   updatedAt           DateTime @updatedAt
 
   categoryId          String?
-  category            ProductCategory? @relation(fields: [categoryId], references: [id])
+  category            ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   stock              Stock?
   OrderItem OrderItem[]
@@ -65,10 +65,10 @@ model OrderItem {
   updatedAt           DateTime @updatedAt
 
   orderId             String
-  order               Order @relation(fields: [orderId], references: [id])
+  order               Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   productId           String
-  product             Product @relation(fields: [productId], references: [id])
+  product             Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 enum OrderStatus {
@@ -84,7 +84,7 @@ model Stock {
   updatedAt           DateTime @updatedAt
 
   productId           String @unique
-  product             Product @relation(fields: [productId], references: [id])
+  product             Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Order {
@@ -96,7 +96,7 @@ model Order {
   updatedAt           DateTime @updatedAt
 
   userId              String
-  user                User @relation(fields: [userId], references: [id])
+  user                User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   items               OrderItem[]
 }
