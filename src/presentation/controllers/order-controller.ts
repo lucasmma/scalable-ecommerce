@@ -26,44 +26,36 @@ export class OrderController {
     };
   
     return prisma.$transaction(async (prisma) => {
+      // Fetch current cart
       let order = await prisma.order.findFirst({
         where: { userId: user.id, status: 'CART' },
         include,
       });
-
-      var totalSold = order?.total ?? 0
-
-      var itemsToFind = body.addProducts?.map(product => product.productId) ?? []
-
+  
+      // Collect product IDs to fetch
+      let itemsToFind = body.addProducts?.map((product) => product.productId) ?? [];
       // remove products that are already in the cart
-      if(order) {
-        itemsToFind = itemsToFind.filter(productId => !order!.items.some(item => item.productId === productId))
+      if (order) {
+        itemsToFind = itemsToFind.filter((productId) => !order!.items.some((item) => item.productId === productId));
       }
-
-      var products = await prisma.product.findMany({
-        where: {
-          id: {
-            in: itemsToFind
-          }
-        },
-      })
-
-
-
-
+  
+      // Fetch products for price calculations
+      const products = await prisma.product.findMany({
+        where: { id: { in: itemsToFind } },
+      });
   
       if (!order) {
         if (body.removeProducts && body.removeProducts.length > 0) {
           return badRequest(new Error('Cannot remove products from an empty cart'));
         }
   
-        // Prepare initial items for a new cart
+        // Create a new cart
         const initialItems = body.addProducts!.map((product) => {
-          var productPrice = products.find(p => p.id === product.productId)!.price
+          const productPrice = products.find(p => p.id === product.productId)!.price
           return {
             productId: product.productId,
             quantity: product.quantity,
-            price: productPrice * product.quantity, // TODO: Calculate price
+            price: productPrice * product.quantity
           }
         });
   
@@ -71,7 +63,7 @@ export class OrderController {
           data: {
             userId: user.id,
             status: 'CART',
-            total: calculateTotalPriceFromProducts(products.map(product => ({ product, quantity: body.addProducts!.find(p => p.productId ==product.id)!.quantity }))),
+            total: initialItems.reduce((sum, item) => sum + item.price, 0),
             items: { createMany: { data: initialItems } },
           },
           include,
@@ -81,11 +73,13 @@ export class OrderController {
       }
   
       const itemsAlreadyInCart = order.items;
+      const productsToCreate = [];
+      const itemsUpdated = []
   
       // Handle product removal
       if (body.removeProducts && body.removeProducts.length > 0) {
         const invalidRemovals = body.removeProducts.filter(
-          (removeProduct) => !itemsAlreadyInCart.some((item) => item.productId === removeProduct)
+          (productId) => !itemsAlreadyInCart.some((item) => item.productId === productId)
         );
   
         if (invalidRemovals.length > 0) {
@@ -101,78 +95,60 @@ export class OrderController {
       }
   
       // Handle product addition
-      const updatedItems = []
-      const productsToCreate = []
-      if (body.addProducts && body.addProducts.length > 0) {
+      const itemsToUpdate = [];
+      if (body.addProducts?.length) {
         const existingProductIds = new Set(itemsAlreadyInCart.map((item) => item.productId));
   
-        const itemsToUpdate = [];
-  
-        for (const addProduct of body.addProducts) {
-          const product = products.find(p => p.id === addProduct.productId)!
-          if (existingProductIds.has(addProduct.productId)) {
-            itemsToUpdate.push(addProduct);
+        for (const product of body.addProducts) {
+          const productDetails = products.find(p => p.id === product.productId)!;
+          if (existingProductIds.has(product.productId)) {
+            itemsToUpdate.push({ ...product, price: productDetails.price });
           } else {
             productsToCreate.push({
               orderId: order.id,
-              productId: addProduct.productId,
-              quantity: addProduct.quantity,
-              price: product.price * addProduct.quantity, // TODO: Calculate price
+              productId: product.productId,
+              quantity: product.quantity,
+              price: productDetails.price * product.quantity,
             });
           }
         }
   
-        // Update existing items
-        if (itemsToUpdate.length > 0) {
-          for (const product of itemsToUpdate) {
-            const item = itemsAlreadyInCart.find((item) => item.productId === product.productId);
-            console.log
-            const updatedItem = await prisma.orderItem.update({
-              where: {
-                id: item!.id,
-              },
-              data: {
-                quantity: {
-                  increment: product.quantity,
-                },
-                price: {
-                  increment: product.quantity * item!.product.price
-                }, // TODO: Calculate price
-              },
-            });
-            updatedItems.push(updatedItem);
-          }
-        }
-  
-        // Create new items
-        if (productsToCreate.length > 0) {
-          await prisma.orderItem.createMany({
-            data: productsToCreate,
+        // Bulk update existing items
+        for (const item of itemsToUpdate) {
+          var itemInCart = itemsAlreadyInCart.find((item) => item.productId === item.productId)!
+          const updatedItem = await prisma.orderItem.update({
+            where: {
+              id: itemInCart.id
+            },
+            data: {
+              quantity: { increment: item.quantity },
+              price: { increment: item.quantity * item.price },
+            },
           });
+          itemsUpdated.push(updatedItem);
+        }
+  
+        // Bulk insert new items
+        if (productsToCreate.length > 0) {
+          await prisma.orderItem.createMany({ data: productsToCreate });
         }
       }
   
-      // Refresh the order with updated items
-      // get all updated and created items to calculate the total price
-      const updatedAndCreatedItems = [...updatedItems.map((item) => ({
-        product: itemsAlreadyInCart.find(i => i.id === item.id)!.product,
-        quantity: item.quantity,
-      })), ...productsToCreate.map(item => ({
-        product: products.find(p => p.id === item.productId)!,
-        quantity: item.quantity,
-      }))];
-
+      // Recalculate order total
+      const updatedAndCreatedItems = [...itemsUpdated, ...productsToCreate];
+      const totalSold = updatedAndCreatedItems.reduce((sum, item) => sum + item.price, 0);
+  
       const updatedOrder = await prisma.order.update({
-        where: { id: order!.id },
+        where: { id: order.id },
         data: {
-          total: calculateTotalPriceFromProducts(updatedAndCreatedItems),
+          total: totalSold,
         },
         include,
       });
   
       return ok(updatedOrder);
     });
-  }  
+  }
 
   async payCart (
     request: HttpRequest<(typeof payCartSchema._output)>,
