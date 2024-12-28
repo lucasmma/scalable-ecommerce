@@ -15,8 +15,7 @@ export class ProductController {
 
     const product = await prisma.product.create({
       data: {
-        ...body,
-        stock: 0
+        ...body
       }
     })
 
@@ -31,7 +30,7 @@ export class ProductController {
 
     if(request.auth?.user.role !== 'ADMIN'){
       ok(products.map(product => {
-        return omit(product, ['stock', 'deleted'])
+        return omit(product, ['deleted'])
       }))
     }
 
