@@ -100,10 +100,11 @@ export class OrderController {
         const existingProductIds = new Set(itemsAlreadyInCart.map((item) => item.productId));
   
         for (const product of body.addProducts) {
-          const productDetails = products.find(p => p.id === product.productId)!;
           if (existingProductIds.has(product.productId)) {
+            const productDetails = itemsAlreadyInCart.find(p => p.productId === product.productId)!;
             itemsToUpdate.push({ ...product, price: productDetails.price });
           } else {
+            const productDetails = products.find(p => p.id === product.productId)!;
             productsToCreate.push({
               orderId: order.id,
               productId: product.productId,
