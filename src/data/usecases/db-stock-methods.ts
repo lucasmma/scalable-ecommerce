@@ -37,15 +37,22 @@ export class DbStockMethods implements StockMethods {
     return stock
   }
 
-  async validateStock(productId: string): Promise<boolean> {
+  async validateStock(productsUsed: {
+    productId: string
+    quantity: number
+  }[]): Promise<boolean> {
     // Check if product has stock
-  const stock = await prisma.stock.findFirst({
-    where: { productId }
-  })
+    const stock = await prisma.stock.findMany({
+      where: { productId: { in: productsUsed.map((p) => p.productId) } }
+    })
 
-    if (!stock || stock.quantity <= 0) {
-      return false
+    for (const product of productsUsed) {
+      const productStock = stock.find((s) => s.productId === product.productId)
+      if (!productStock || productStock.quantity < product.quantity) {
+        return false
+      }
     }
     return true
   }
+  
 }
