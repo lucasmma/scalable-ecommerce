@@ -21,16 +21,15 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}  # Adjust this to the Node.js version you are using
+          node-version: ${{ matrix.node-version }}
       # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
       # Step 4: Run tests
       - name: Run Tests
-        run: npm test  # This assumes you are using jest as your test runner
-      # Step 5: Deploy or make GET request (optional step)
-      # Assuming you're deploying or calling an API after the tests pass
+        run: npm test
+      # Step 5: Deploy or make GET request
       - name: Make GET Request (if tests pass)
-        if: success()  # This ensures the GET request is only made if tests are successful
+        if: success()
         run: |
           curl -X GET ${{ secrets.R2_WEBHOOK_URL }}
