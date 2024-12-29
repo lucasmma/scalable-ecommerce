@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { adaptAuthRoute } from '../adapters/auth-route-adapter'
-import { adaptRoute } from '../adapters/controller-route-adapter'
+import { adaptAuthRoute } from '../route-adapters/auth-route-adapter'
+import { adaptRoute } from '../route-adapters/controller-route-adapter'
 import { JwtAdapter } from '../../infra/auth/jwt-adapter'
 import env from '../config/env'
 import { makeProductController } from '../factories/product-factory'

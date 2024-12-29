@@ -1,7 +1,7 @@
 import { Express } from 'express'
 import { bodyParser, cors, contentType } from '../middlewares'
 import { logRequestInfo } from '../middlewares/log-info'
-import { adaptRateLimiterRoute } from '../adapters/rate-limiter-route-adapter'
+import { adaptRateLimiterRoute } from '../route-adapters/rate-limiter-route-adapter'
 import { RateLimiter } from '../../infra/rate-limiter/rate-limiter-adapter'
 import { redis } from './redis'
 
