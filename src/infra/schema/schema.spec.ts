@@ -23,27 +23,27 @@ describe('SchemaAdapter', () => {
   describe('when validating a JSON string', () => {
     test('should return success for a valid JSON string', () => {
       const result = sut.validate(validJsonString);
-      expect(result.sucess).toBe(true);
+      expect(result.success).toBe(true);
       expect(result.error).toBeUndefined(); // No error should be returned for valid JSON
     });
 
     test('should return error for a JSON string with missing name', () => {
       const result = sut.validate(invalidJsonStringMissingName);
-      expect(result.sucess).toBe(false);
+      expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
       expect(result.error?.message).toContain('name');
     });
 
     test('should return error for a JSON string with short name', () => {
       const result = sut.validate(invalidJsonStringShortName);
-      expect(result.sucess).toBe(false);
+      expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
       expect(result.error?.message).toContain('name');
     });
 
     test('should return error for an invalid JSON string', () => {
       const result = sut.validate(invalidJsonStringInvalidJson);
-      expect(result.sucess).toBe(false);
+      expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
       expect(result.error?.message).toBe('Invalid JSON string');
     });
