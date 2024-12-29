@@ -8,19 +8,19 @@ export class SchemaAdapter implements SchemaProtocol {
     this.schema = newSchema
   }
 
-  validate(value: object | string): { sucess: boolean, error?: Error } {
+  validate(value: object | string): { success: boolean, error?: Error } {
     try {
       if (typeof value === 'string') {
         value = JSON.parse(value);
       }
       const res = this.schema.safeParse(value);
       return {
-        sucess: res.success,
+        success: res.success,
         error: res.error ? new Error(res.error.message) : undefined
       };
     } catch (error) {
       return {
-        sucess: false,
+        success: false,
         error: new Error('Invalid JSON string')
       };
     }
