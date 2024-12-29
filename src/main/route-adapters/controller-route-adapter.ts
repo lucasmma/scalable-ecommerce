@@ -21,7 +21,7 @@ export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest
         if (schema) {
           const schemaAdapter = new SchemaAdapter(schema);
           const result = schemaAdapter.validate(data);
-          if (!result.sucess) {
+          if (!result.success) {
             const httpResponse = badRequest(result.error ?? new Error(errorMessage));
             res.status(httpResponse.statusCode).json({
               error: httpResponse.body.message
