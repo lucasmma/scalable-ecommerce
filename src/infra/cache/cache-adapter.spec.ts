@@ -36,10 +36,10 @@ describe('CacheAdapter', () => {
     jest.clearAllMocks(); // Clear all mock data after all tests
   });
 
+  var testKey = 'test-key';
   describe('set', () => {
     test('Should call redis.set with correct values and duration', async () => {
-      var testKey = 'test-key';
-      await sut.set('test-key', { value: 'test' }, 3600);
+      await sut.set(testKey, { value: 'test' }, 3600);
       expect(redisClient.set).toHaveBeenCalledWith(
         `${prefix}:${testKey}`,
         JSON.stringify({ value: 'test' }),
@@ -49,9 +49,9 @@ describe('CacheAdapter', () => {
     });
 
     test('Should call redis.set without duration if not provided', async () => {
-      await sut.set('test-key', { value: 'test' });
+      await sut.set(testKey, { value: 'test' });
       expect(redisClient.set).toHaveBeenCalledWith(
-        `${prefix}:test-key`,
+        `${prefix}:${testKey}`,
         JSON.stringify({ value: 'test' })
       );
     });
@@ -61,23 +61,23 @@ describe('CacheAdapter', () => {
     test('Should return the parsed value for an existing key', async () => {
       jest.spyOn(redisClient, 'get').mockResolvedValueOnce(JSON.stringify({ value: 'test' }));
 
-      const result = await sut.get('test-key');
-      expect(redisClient.get).toHaveBeenCalledWith(`${prefix}:test-key`);
+      const result = await sut.get(testKey);
+      expect(redisClient.get).toHaveBeenCalledWith(`${prefix}:${testKey}`);
       expect(result).toEqual({ value: 'test' });
     });
 
     test('Should return null if the key does not exist', async () => {
       jest.spyOn(redisClient, 'get').mockResolvedValueOnce(null);
 
-      const result = await sut.get('test-key');
+      const result = await sut.get(testKey);
       expect(result).toBeNull();
     });
   });
 
   describe('delete', () => {
     test('Should call redis.del with correct key', async () => {
-      await sut.delete('test-key');
-      expect(redisClient.del).toHaveBeenCalledWith(`${prefix}:test-key`);
+      await sut.delete(testKey);
+      expect(redisClient.del).toHaveBeenCalledWith(`${prefix}:${testKey}`);
     });
   });
 
@@ -85,15 +85,15 @@ describe('CacheAdapter', () => {
     test('Should return true if the key exists', async () => {
       jest.spyOn(redisClient, 'exists').mockResolvedValueOnce(1);
 
-      const result = await sut.exists('test-key');
-      expect(redisClient.exists).toHaveBeenCalledWith(`${prefix}:test-key`);
+      const result = await sut.exists(testKey);
+      expect(redisClient.exists).toHaveBeenCalledWith(`${prefix}:${testKey}`);
       expect(result).toBe(true);
     });
 
     test('Should return false if the key does not exist', async () => {
       jest.spyOn(redisClient, 'exists').mockResolvedValueOnce(0);
 
-      const result = await sut.exists('test-key');
+      const result = await sut.exists(testKey);
       expect(result).toBe(false);
     });
   });
