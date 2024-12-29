@@ -1,5 +1,4 @@
-# .github/workflows/test.yml
-name: Run Tests Before GET Request
+name: Run Tests Before Deploying
 
 on:
   push:
