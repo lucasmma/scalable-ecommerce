@@ -22,6 +22,6 @@ COPY --from=builder /usr/src/app/prisma ./prisma
 
 EXPOSE 3000
 
-COPY .env .env  
+# COPY .env .env  
 
 CMD ["node", "dist/main/server.js"]
