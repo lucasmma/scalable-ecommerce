@@ -42,7 +42,7 @@ export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest
     try {
       httpResponse = await handle.call(controller, httpRequest)
     } catch (error) {
-      console.log(error)
+      // console.log(error)
       httpResponse = serverError({
         message: 'Internal server error'
       } as Error)
