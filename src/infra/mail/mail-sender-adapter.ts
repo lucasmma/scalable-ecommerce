@@ -1,23 +1,23 @@
 import nodemailer from 'nodemailer'
 import { MailData } from '../../domain/models/maildata'
-import env from '../../main/config/env'
 
-const transporter = nodemailer.createTransport({
-  host: env.NODEMAILER_HOST,
-  port: env.NODEMAILER_PORT,
-  auth: {
-    user: env.NODEMAILER_USER,
-    pass: env.NODEMAILER_PASS
+export class MailSenderAdapter  {
+  constructor (private readonly transporter: nodemailer.Transporter) {
+    this.transporter = transporter
   }
-})
 
-export class MailSenderAdapter {
+
   async send (mailData: MailData): Promise<boolean> {
-    const results = await transporter.sendMail({
-      ...mailData,
-      from: 'r2takehomeproject@gmail.com'
-    })
-
-    return results.accepted.includes(mailData.to)
+    try {
+      const results = await this.transporter.sendMail({
+        ...mailData,
+        from: 'r2takehomeproject@gmail.com'
+      })
+      console.log(results)
+      return results.accepted.includes(mailData.to)
+    } catch (error) {
+      console.log(error)
+      throw new Error('Failed to send email')
+    }
   }
 }
