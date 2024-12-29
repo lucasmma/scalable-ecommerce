@@ -19,22 +19,16 @@ export class RateLimiter implements RateLimiterProtocol {
     try {
       const ttl = await this.redisClient.ttl(keyWithPrefix);
 
-      if (ttl === -1 || ttl === -2) {
-        // Key does not exist or has no expiration, initialize it
+      if (ttl === -2) {
+        // Key does not exist, initialize it
         await this.redisClient.set(keyWithPrefix, 1, 'EX', this.duration);
         return true;
       }
 
       const currentCount = await this.redisClient.incr(keyWithPrefix);
 
-      // First increamentation of the key, set the expiration
-      if (currentCount === 1) {
-        await this.redisClient.expire(keyWithPrefix, this.duration);
-      }
-
       return currentCount <= this.max;
     } catch (error) {
-      console.error('RateLimiter Error:', error);
       return false; // Deny request for safety
     }
   }
