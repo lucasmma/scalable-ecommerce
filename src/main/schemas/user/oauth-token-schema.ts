@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const oauthTokenSchema = z.object({
   grantType: z.enum(['client_credentials', 'refresh_token']),
-  email: z.string().optional(),
+  email: z.string().email().optional(),
   password: z.string().optional(),
   refreshToken: z.string().optional(),
 }).strict().superRefine((data, ctx) => {
