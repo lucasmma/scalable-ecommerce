@@ -8,9 +8,10 @@ import { redis } from './redis'
 export default (app: Express): void => {
   var rateLimiterAdapter = new RateLimiter(redis, 5, 60)
 
+
+  app.use(contentType)
   app.use(bodyParser)
   app.use(cors)
   app.use(logRequestInfo)
-  app.use(contentType)
   app.use(adaptRateLimiterRoute(rateLimiterAdapter))
 }
