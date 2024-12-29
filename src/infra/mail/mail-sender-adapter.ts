@@ -13,10 +13,8 @@ export class MailSenderAdapter  {
         ...mailData,
         from: 'r2takehomeproject@gmail.com'
       })
-      console.log(results)
       return results.accepted.includes(mailData.to)
     } catch (error) {
-      console.log(error)
       throw new Error('Failed to send email')
     }
   }
