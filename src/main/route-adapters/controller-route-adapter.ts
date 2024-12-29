@@ -3,12 +3,7 @@ import { Response } from 'express'
 import { badRequest, ok, serverError } from '../../presentation/helpers/http-helper'
 import { z } from 'zod'
 import { SchemaAdapter } from '../../infra/schema/schema-adapter'
-
-type SchemaMap = {
-  param?: z.AnyZodObject | z.ZodEffects<any, any>
-  body?: z.AnyZodObject | z.ZodEffects<any, any>
-  query?: z.AnyZodObject | z.ZodEffects<any, any>
-}
+import { SchemaMap } from '../../domain/models/schema-map'
 
 export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest) => Promise<HttpResponse>, schemaMap?: SchemaMap) => {
   return async (req: any, res: Response) => {
