@@ -31,25 +31,7 @@ describe('DbStockMethods', () => {
   })
 
   describe('add method', () => {
-    test('Should create new stock when no stock exists for product', async () => {
-      // Arrange
-      const productId = '123'
-      const quantity = 10
-      upsert.mockResolvedValue(mockStock)
-
-      // Act
-      const result = await dbStockMethods.add(productId, quantity)
-
-      // Assert
-      expect(prisma.stock.upsert).toHaveBeenCalledWith({
-        where: { productId },
-        update: { quantity: { increment: quantity } },
-        create: { productId, quantity },
-      })
-      expect(result).toEqual(mockStock)
-    })
-
-    test('Should increment stock when stock exists for product', async () => {
+    test('Should create or increment new stock when no stock exists for product', async () => {
       // Arrange
       const productId = '123'
       const quantity = 10
