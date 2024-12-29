@@ -13,8 +13,10 @@ export class RateLimiter implements RateLimiterProtocol {
     this.duration = duration; // Time window in seconds
   }
 
+  private prefix: string = 'rate-limiter';
+
   async isAllowed(key: string): Promise<boolean> {
-    const keyWithPrefix = `rate-limiter:${key}`;
+    const keyWithPrefix = `${this.prefix}:${key}`;
 
     try {
       const ttl = await this.redisClient.ttl(keyWithPrefix);
@@ -34,7 +36,7 @@ export class RateLimiter implements RateLimiterProtocol {
   }
 
   async reset(key: string): Promise<void> {
-    const keyWithPrefix = `rate-limiter:${key}`;
+    const keyWithPrefix = `${this.prefix}:${key}`;
     await this.redisClient.del(keyWithPrefix);
   }
 }
