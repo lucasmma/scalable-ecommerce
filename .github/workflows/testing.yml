@@ -3,7 +3,7 @@ name: Run Tests Before Deploying
 on:
   push:
     branches:
-      - main  # Change this to the branch you want to trigger the workflow
+      - master
 
 jobs:
   test:
