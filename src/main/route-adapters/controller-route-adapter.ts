@@ -40,13 +40,13 @@ export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest
     }
 
     try {
-      httpResponse = await handle.call(controller, httpRequest)
+      httpResponse = await handle.call(controller, httpRequest);
     } catch (error) {
-      // console.log(error)
+      // Check if the error is an instance of Error
       httpResponse = serverError({
-        message: 'Internal server error'
-      } as Error)
-    }
+        message: error instanceof Error && error.message != null ? error.message : 'Internal server error'
+      } as Error);
+    }    
 
     if (httpResponse.statusCode === 200) {
       res.status(httpResponse.statusCode).json(httpResponse.body)
