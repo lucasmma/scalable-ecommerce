@@ -4,7 +4,11 @@ import swaggerJsdoc from 'swagger-jsdoc';
 const swaggerOptions: swaggerJsdoc.Options = {
   swaggerDefinition: {
     openapi: '3.0.0',
-    basePath: '/',
+    servers: [
+      {
+        url: '/api/v1',
+      },
+    ],
     schemes: ['http', 'https'],
     info: {
       title: 'R2 E-commerce API',
