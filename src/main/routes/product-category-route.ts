@@ -84,10 +84,7 @@ export default (router: Router): void => {
  *     tags:
  *       - Product Categories
  *     parameters:
- *       - in: path
- *         required: true
- *         schema:
- *          $ref: '#/components/schemas/IdParameter'  
+ *       - $ref: '#/components/parameters/IdParameter'
  *     requestBody:
  *       required: true
  *       content:

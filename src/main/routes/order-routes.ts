@@ -106,12 +106,7 @@ import { idSchema } from '../schemas/id-schema'
  *     tags:
  *       - Orders
  *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           example: "cl1j9c9f0g2b0a0h6jj0"
+ *       - $ref: '#/components/parameters/IdParameter'
  *     responses:
  *       200:
  *         description: A specific order
@@ -127,12 +122,7 @@ import { idSchema } from '../schemas/id-schema'
  *     tags:
  *       - Orders
  *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           example: "cl1j9c9f0g2b0a0h6jj0"
+ *       - $ref: '#/components/parameters/IdParameter'
  *     requestBody:
  *       required: true
  *       content:
@@ -154,12 +144,7 @@ import { idSchema } from '../schemas/id-schema'
  *     tags:
  *       - Orders
  *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           example: "cl1j9c9f0g2b0a0h6jj0"
+ *       - $ref: '#/components/parameters/IdParameter'
  *     responses:
  *       200:
  *         description: Order marked as delivered

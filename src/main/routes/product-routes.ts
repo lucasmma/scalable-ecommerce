@@ -109,12 +109,7 @@ import { editProductSchema } from '../schemas/product/edit-product-schema'
  *     tags:
  *       - Products
  *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           example: "cl1j9c9f0g2b0a0h6jj0"
+ *       - $ref: '#/components/parameters/IdParameter'
  *     requestBody:
  *       required: true
  *       content:
@@ -134,12 +129,7 @@ import { editProductSchema } from '../schemas/product/edit-product-schema'
  *     tags:
  *       - Products
  *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           example: "cl1j9c9f0g2b0a0h6jj0"
+ *       - $ref: '#/components/parameters/IdParameter'
  *     responses:
  *       200:
  *         description: Product deleted successfully (soft delete)
@@ -154,12 +144,7 @@ import { editProductSchema } from '../schemas/product/edit-product-schema'
  *     tags:
  *       - Products
  *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           example: "cl1j9c9f0g2b0a0h6jj0"
+ *       - $ref: '#/components/parameters/IdParameter'
  *     responses:
  *       200:
  *         description: A list of products in the specified category
