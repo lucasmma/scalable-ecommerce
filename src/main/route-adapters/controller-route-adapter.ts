@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { SchemaAdapter } from '../../infra/schema/schema-adapter'
 import { SchemaMap } from '../../domain/models/schema-map'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+import { exceptionCounter } from '../config/registry-metrics'
 
 export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest) => Promise<HttpResponse>, schemaMap?: SchemaMap) => {
   return async (req: any, res: Response) => {
@@ -58,6 +59,7 @@ export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest
         httpResponse = serverError({
           message: 'Internal server error'
         } as Error);
+        exceptionCounter.inc({ method: req.method, route: req.originalUrl, status_code: message ? 400 : 500, error: message ?? 'internal-error' });
       }
     }
 
