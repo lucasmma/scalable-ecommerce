@@ -191,9 +191,13 @@ export class OrderController {
         },
       })
     }
+
+    if(!order) {
+      return badRequest(new Error('Cart does not exist'))
+    }
     
 
-    if(!order || order.total === 0) {
+    if(order.total === 0) {
       return badRequest(new Error('Cart is empty')
       )
     }
