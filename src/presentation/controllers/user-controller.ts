@@ -8,6 +8,7 @@ import { createUserSchema } from '../../main/schemas/user/create-user-schema'
 import { oauthTokenSchema } from '../../main/schemas/user/oauth-token-schema'
 import { omit } from '../helpers/omit-field'
 import { editUserSchema } from '../../main/schemas/user/edit-user-schema'
+import { securityEventCounter } from '../../main/config/registry-metrics'
 
 export class UserController {
   constructor(private readonly bcrypt: BcryptAdapter,
@@ -74,12 +75,14 @@ export class UserController {
       })
 
       if (!user) {
+        securityEventCounter.inc({ event_type: 'invalid_credentials', route: '/oauth/token' })
         return badRequest(new Error('Invalid credentials'))
       }
 
       const passwordMatch = await this.bcrypt.compare(body.password!, user.password)
 
       if (!passwordMatch) {
+        securityEventCounter.inc({ event_type: 'invalid_credentials', route: '/oauth/token' })
         return badRequest(new Error('Invalid credentials'))
       }
       const userWithoutPassword = omit(user, ['password'])
@@ -97,6 +100,7 @@ export class UserController {
       var isValid = this.secondaryJwtAdapter.validate(body.refreshToken!)
 
       if (!isValid) {
+        securityEventCounter.inc({ event_type: 'invalid_refresh_token', route: '/oauth/token' })
         return badRequest(new Error('Invalid refresh token'))
       }
 
@@ -109,6 +113,7 @@ export class UserController {
       })
 
       if (!user) {
+        securityEventCounter.inc({ event_type: 'invalid_refresh_token', route: '/oauth/token' })
         return badRequest(new Error('Invalid refresh token'))
       }
 
