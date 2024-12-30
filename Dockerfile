@@ -19,6 +19,9 @@ RUN npm install --production
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /usr/src/app/prisma ./prisma
+# Copy route and schema files to final image if needed
+COPY --from=builder /usr/src/app/src/main/routes /usr/src/app/src/main/routes
+COPY --from=builder /usr/src/app/src/main/schemas /usr/src/app/src/main/schemas
 
 EXPOSE 443
 
