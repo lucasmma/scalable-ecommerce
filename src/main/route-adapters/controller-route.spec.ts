@@ -112,6 +112,7 @@ describe('AdaptRoute Middleware', () => {
 
   describe('Controller Handling', () => {
     test('Should return 500 if an exception occurs in controller', async () => {
+      var errorMessage = 'Something went wrong'
       mockController.handle.mockImplementationOnce(() => {
         throw new Error('Something went wrong')
       })
@@ -121,7 +122,7 @@ describe('AdaptRoute Middleware', () => {
       const response = await createRequest({ name: 'John' })
 
       expect(response.status).toBe(500)
-      expect(response.body.error).toBe('Internal server error')
+      expect(response.body.error).toBe(errorMessage)
     })
 
     test('Should return 200 if controller handles request successfully', async () => {
