@@ -11,5 +11,27 @@ const httpRequestDurationSeconds = new promClient.Histogram({
   buckets: [0.1, 0.5, 1, 2.5, 5, 10], // Define buckets for response times
 });
 
+const exceptionCounter = new promClient.Counter({
+  name: 'http_request_expection_total',
+  help: 'Total number of HTTP request expections',
+  labelNames: ['method', 'route', 'status_code', 'error'],
+});
+
+const securityEventCounter = new promClient.Counter({
+  name: 'security_events_total',
+  help: 'Count of security-related events',
+  labelNames: ['event_type', 'route'],
+});
+
+const appRestartsCounter = new promClient.Counter({
+  name: 'app_restarts_total',
+  help: 'Number of application restarts',
+});
+// add transaction error counter
+
 register.registerMetric(httpRequestDurationSeconds);
-export {register, httpRequestDurationSeconds}
+register.registerMetric(exceptionCounter);
+register.registerMetric(securityEventCounter);
+register.registerMetric(appRestartsCounter);
+
+export { register, httpRequestDurationSeconds, exceptionCounter, securityEventCounter, appRestartsCounter };
