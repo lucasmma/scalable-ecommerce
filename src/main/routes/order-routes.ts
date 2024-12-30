@@ -68,6 +68,8 @@ import { idSchema } from '../schemas/id-schema'
  *   post:
  *     summary: Update cart items
  *     description: Update the items in a user's cart.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Orders
  *     requestBody:
@@ -88,6 +90,8 @@ import { idSchema } from '../schemas/id-schema'
  *   get:
  *     summary: Retrieve all orders
  *     description: Get all orders placed by users.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Orders
  *     responses:
@@ -103,6 +107,8 @@ import { idSchema } from '../schemas/id-schema'
  *   get:
  *     summary: Retrieve a specific order by ID
  *     description: Get details of a specific order using its ID.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Orders
  *     parameters:
@@ -119,6 +125,8 @@ import { idSchema } from '../schemas/id-schema'
  *   post:
  *     summary: Pay for a cart
  *     description: Proceed with the payment for an order.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Orders
  *     parameters:
@@ -141,6 +149,8 @@ import { idSchema } from '../schemas/id-schema'
  *   post:
  *     summary: Mark an order as delivered
  *     description: Admin can mark an order as delivered.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Orders
  *     parameters:

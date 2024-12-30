@@ -73,6 +73,8 @@ import { editProductSchema } from '../schemas/product/edit-product-schema'
  *   post:
  *     summary: Create a new product
  *     description: Create a new product in the system.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Products
  *     requestBody:
@@ -91,6 +93,8 @@ import { editProductSchema } from '../schemas/product/edit-product-schema'
  *   get:
  *     summary: Retrieve a list of products
  *     description: Fetch all products available in the system.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Products
  *     responses:
@@ -106,6 +110,8 @@ import { editProductSchema } from '../schemas/product/edit-product-schema'
  *   put:
  *     summary: Update a product
  *     description: Update an existing product in the system.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Products
  *     parameters:
@@ -126,6 +132,8 @@ import { editProductSchema } from '../schemas/product/edit-product-schema'
  *   delete:
  *     summary: Delete a product
  *     description: Delete an existing product in the system (soft delete).
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Products
  *     parameters:
@@ -141,6 +149,8 @@ import { editProductSchema } from '../schemas/product/edit-product-schema'
  *   get:
  *     summary: Retrieve products by category
  *     description: Fetch all products in a specific category.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Products
  *     parameters:

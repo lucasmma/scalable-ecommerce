@@ -48,6 +48,8 @@ import { makeStockController } from '../factories/stock-factory'
  *   post:
  *     summary: Add stock to a product
  *     description: Add stock to a specific product in the system.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Stock
  *     parameters:
@@ -70,6 +72,8 @@ import { makeStockController } from '../factories/stock-factory'
  *   post:
  *     summary: Remove stock from a product
  *     description: Remove stock from a specific product in the system.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Stock
  *     parameters:

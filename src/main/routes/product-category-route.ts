@@ -39,6 +39,8 @@ export default (router: Router): void => {
  *   get:
  *     summary: Retrieve a list of product categories
  *     description: Fetch all product categories available in the system.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Product Categories
  *     parameters:
@@ -61,6 +63,8 @@ export default (router: Router): void => {
  *   post:
  *     summary: Create a new product category
  *     description: Create a new product category in the system.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Product Categories
  *     requestBody:
@@ -81,6 +85,8 @@ export default (router: Router): void => {
  *   put:
  *     summary: Update a product category
  *     description: Update a product category in the system.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Product Categories
  *     parameters:
@@ -101,6 +107,8 @@ export default (router: Router): void => {
  *   delete:
  *     summary: Delete a product category
  *     description: Delete a product category in the system.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Product Categories
  *     parameters:

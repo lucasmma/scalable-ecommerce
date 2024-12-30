@@ -11,6 +11,10 @@ import { editUserSchema } from '../schemas/user/edit-user-schema'
 /**
  * @openapi
  * components:
+ *   securitySchemes:
+ *    BearerAuth:
+ *      type: http
+ *      scheme: bearer
  *   schemas:
  *     User:
  *       type: object
@@ -76,6 +80,8 @@ import { editUserSchema } from '../schemas/user/edit-user-schema'
  *   post:
  *     summary: Create a new user
  *     description: Create a new user in the system.
+ *     security:
+ *       - BearerAuth: [] 
  *     tags:
  *       - Users
  *     requestBody:
@@ -96,6 +102,8 @@ import { editUserSchema } from '../schemas/user/edit-user-schema'
  *     description: Update an existing user's details.
  *     tags:
  *       - Users
+ *     security:
+ *       - BearerAuth: [] 
  *     requestBody:
  *       required: true
  *       content:
