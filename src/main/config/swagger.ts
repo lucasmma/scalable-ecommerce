@@ -17,14 +17,6 @@ const swaggerOptions: swaggerJsdoc.Options = {
     },
     consumes: ['application/json'],
     produces: ['application/json'],
-    securityDefinitions: {
-      bearerAuth: {
-        type: 'apiKey',
-        name: 'Authorization',
-        in: 'header',
-        scheme: 'bearer',
-      },
-    },
   },
   apis: ['src/main/routes/*.ts', 'src/main/schemas/*.ts', 'src/main/schemas/*/*.ts'],
 };
