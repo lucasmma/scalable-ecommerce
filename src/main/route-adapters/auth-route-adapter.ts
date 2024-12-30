@@ -3,6 +3,7 @@ import { NextFunction, Response } from 'express'
 import { badRequest, ok, serverError } from '../../presentation/helpers/http-helper'
 import { SchemaProtocol } from '../../data/protocols/schema'
 import { JwtProtocol } from '../../data/protocols/jwt'
+import { exceptionCounter, securityEventCounter } from '../config/registry-metrics'
 
 export const adaptAuthRoute = (jwt: JwtProtocol, role?: 'USER' | 'ADMIN') => {
   return async (req: any, res: Response, next: NextFunction) => {
@@ -10,6 +11,7 @@ export const adaptAuthRoute = (jwt: JwtProtocol, role?: 'USER' | 'ADMIN') => {
     // get bearer token
     const token = req.headers.authorization?.split(' ')[1]
     if (!token) {
+      securityEventCounter.inc({ event_type: 'missing_token', route: req.originalUrl })
       res.status(401).json({
         error: 'Unauthorized'
       })
@@ -21,6 +23,7 @@ export const adaptAuthRoute = (jwt: JwtProtocol, role?: 'USER' | 'ADMIN') => {
       const decoded = jwt.validate(token)
 
       if (role && decoded.role !== role) {
+        securityEventCounter.inc({ event_type: 'wrong_token', route: req.originalUrl })
         res.status(403).json({
           error: 'Forbidden'
         })
@@ -30,7 +33,9 @@ export const adaptAuthRoute = (jwt: JwtProtocol, role?: 'USER' | 'ADMIN') => {
       req.auth = {
         user: decoded
       }
-    } catch (error) {
+    } catch (error: any) {
+      securityEventCounter.inc({ event_type: 'missing_token', route: req.originalUrl })
+      exceptionCounter.inc({ method: req.method, route: req.originalUrl, status_code: 401, error: error.message ?? 'unkown' })
       res.status(401).json({
         error: 'Unauthorized'
       })

@@ -5,9 +5,7 @@ import productCategoryRoutes from '../routes/product-category-route'
 import orderRoutes from '../routes/order-routes'
 import stockRoutes from '../routes/stock-routes'
 
-export default (app: Express): void => {
-  const router = Router()
-  app.use('/api/v1', router)
+export default (router: Router): void => {
   userRoutes(router)
   productRoutes(router)
   productCategoryRoutes(router)

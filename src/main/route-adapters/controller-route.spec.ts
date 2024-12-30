@@ -111,9 +111,23 @@ describe('AdaptRoute Middleware', () => {
   })
 
   describe('Controller Handling', () => {
-    test('Should return 500 if an exception occurs in controller', async () => {
+    test('Should return 400 if an known exception occurs in controller', async () => {
+      var errorMessage = 'Something went wrong'
       mockController.handle.mockImplementationOnce(() => {
         throw new Error('Something went wrong')
+      })
+
+      setupRoute()
+
+      const response = await createRequest({ name: 'John' })
+
+      expect(response.status).toBe(400)
+      expect(response.body.error).toBe(errorMessage)
+    })
+
+    test('Should return 500 if an unkown exception occurs in controller', async () => {
+      mockController.handle.mockImplementationOnce(() => {
+        throw new Error()
       })
 
       setupRoute()

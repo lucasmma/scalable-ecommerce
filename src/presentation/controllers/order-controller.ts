@@ -136,8 +136,7 @@ export class OrderController {
         // Bulk update existing items
         for (const item of itemsToUpdate) {
           var itemInCart = itemsAlreadyInCart.find((item) => item.productId === item.productId)!
-          console.log(itemInCart)
-          console.log(item)
+
           const updatedItem = await prisma.orderItem.update({
             where: {
               id: itemInCart.id
@@ -192,9 +191,13 @@ export class OrderController {
         },
       })
     }
+
+    if(!order) {
+      return badRequest(new Error('Cart does not exist'))
+    }
     
 
-    if(!order || order.total === 0) {
+    if(order.total === 0) {
       return badRequest(new Error('Cart is empty')
       )
     }

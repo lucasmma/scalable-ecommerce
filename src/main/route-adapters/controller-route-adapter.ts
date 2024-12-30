@@ -4,6 +4,8 @@ import { badRequest, ok, serverError } from '../../presentation/helpers/http-hel
 import { z } from 'zod'
 import { SchemaAdapter } from '../../infra/schema/schema-adapter'
 import { SchemaMap } from '../../domain/models/schema-map'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+import { exceptionCounter } from '../config/registry-metrics'
 
 export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest) => Promise<HttpResponse>, schemaMap?: SchemaMap) => {
   return async (req: any, res: Response) => {
@@ -40,12 +42,25 @@ export const adaptRoute = (controller: object, handle: (httpRequest: HttpRequest
     }
 
     try {
-      httpResponse = await handle.call(controller, httpRequest)
-    } catch (error) {
-      // console.log(error)
-      httpResponse = serverError({
-        message: 'Internal server error'
-      } as Error)
+      httpResponse = await handle.call(controller, httpRequest);
+    } catch (error: any) {
+      // Check if the error is an instance of Error
+      var message: string | undefined | null = error.message;
+
+      if (error instanceof PrismaClientKnownRequestError) {
+        message =  error.meta?.cause as string | undefined | null;
+      }
+
+      if(message) {
+        httpResponse = badRequest({
+          message: message
+        } as Error);
+      } else {
+        httpResponse = serverError({
+          message: 'Internal server error'
+        } as Error);
+        exceptionCounter.inc({ method: req.method, route: req.originalUrl, status_code: message ? 400 : 500, error: message ?? 'internal-error' });
+      }
     }
 
     if (httpResponse.statusCode === 200) {
