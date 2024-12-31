@@ -33,12 +33,22 @@ import { z } from 'zod'
  *               pattern: "^\\d{3}$"
  */
 
+const validateExpirationDate = (date: string): boolean => {
+  const [month, year] = date.split('/').map(Number);
+  if (!month || !year || month < 1 || month > 12) return false;
+  const currentYear = new Date().getFullYear() % 100;
+  const currentMonth = new Date().getMonth() + 1;
+  return year > currentYear || (year === currentYear && month >= currentMonth);
+};
+
 export const payCartSchema = z.object({
   address: z.string(),
   card: z.object({
     cardNumber: z.string().length(16).regex(/^\d+$/),
     cardHolder: z.string(),
-    expirationDate: z.string().regex(/^\d{2}\/\d{2}$/),
+    expirationDate: z.string().regex(/^\d{2}\/\d{2}$/).refine(validateExpirationDate, {
+      message: "Expiration date must be a valid future date in MM/YY format",
+    }),
     cvv: z.string().length(3).regex(/^\d+$/),
   }),
 }).strict();
