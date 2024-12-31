@@ -1,6 +1,6 @@
 import { PaymentGatewayProtocol, PaymentMethod } from '../../data/protocols/payment-gateway'
 
-class MockPaymentGateway implements PaymentGatewayProtocol {
+export class MockPaymentGateway implements PaymentGatewayProtocol {
   private payments: Map<string, { amount: number; currency: string; captured: boolean; refunded: boolean }> = new Map();
 
   async initializePayment(orderId: string, amount: number, currency: string, creditCard: PaymentMethod ): Promise<void> {
