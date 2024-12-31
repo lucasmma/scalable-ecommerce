@@ -28,10 +28,16 @@ const appRestartsCounter = new promClient.Counter({
   help: 'Number of application restarts',
 });
 // add transaction error counter
+const transactionErrorCounter = new promClient.Counter({
+  name: 'transaction_error_total',
+  help: 'Number of transaction errors',
+  labelNames: ['error_type', 'method'],
+});
 
 register.registerMetric(httpRequestDurationSeconds);
 register.registerMetric(exceptionCounter);
 register.registerMetric(securityEventCounter);
 register.registerMetric(appRestartsCounter);
+register.registerMetric(transactionErrorCounter);
 
-export { register, httpRequestDurationSeconds, exceptionCounter, securityEventCounter, appRestartsCounter };
+export { register, httpRequestDurationSeconds, exceptionCounter, securityEventCounter, appRestartsCounter, transactionErrorCounter };
