@@ -91,6 +91,9 @@ export class OrderController {
           },
           include,
         });
+        
+        await this.cartCacheAdapter.set(user.id, order);
+  
         return ok(order);
       }
   
