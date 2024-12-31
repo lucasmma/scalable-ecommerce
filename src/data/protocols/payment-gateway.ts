@@ -1,6 +1,12 @@
+export type PaymentMethod = {
+  cardNumber: string;
+  cardHolder: string;
+  expirationDate: string;
+  cvv: string;
+};
+
 export interface PaymentGatewayProtocol {
-  initializePayment(amount: number, currency: string, metadata?: Record<string, any>): Promise<string>;
-  capturePayment(paymentId: string): Promise<boolean>;
-  refundPayment(paymentId: string, amount?: number): Promise<boolean>;
-  cancelPayment(paymentId: string): Promise<boolean>;
+  initializePayment(orderId: string, amount: number, currency: string, creditCard: PaymentMethod): Promise<void>;
+  capturePayment(paymentId: string): Promise<void>;
+  refundPayment(paymentId: string): Promise<void>;
 }
