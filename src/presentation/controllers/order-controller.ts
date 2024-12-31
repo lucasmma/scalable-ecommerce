@@ -9,6 +9,7 @@ import { MailSenderAdapter } from '../../infra/mail/mail-sender-adapter'
 import { CacheProtocol } from '../../data/protocols/cache'
 import { Order, OrderItem, Product } from '@prisma/client'
 import { MockPaymentGateway } from '../../infra/payment-gateway/mock-payment-gateway'
+import { omit } from '../helpers/omit-field'
 
 export class OrderController {
   constructor(private readonly stockMethods: StockMethods,
@@ -28,7 +29,7 @@ export class OrderController {
       items: {
         include: { 
           product: {
-            select: { id:true, name: true, description: true, price: true }
+            select: { id:true, name: true, description: true, price: true, deleted: true }
           } 
         },
       },
@@ -36,7 +37,7 @@ export class OrderController {
   
     return prisma.$transaction(async (prisma) => {
       // Fetch current cart
-      var order = await this.cartCacheAdapter.get<(Order & {items: (OrderItem & {product: { id: string, name: string, description: string, price: number}})[]})>(user.id)
+      var order = await this.cartCacheAdapter.get<(Order & {items: (OrderItem & {product: { id: string, name: string, description: string, price: number }})[]})>(user.id)
 
       if(!order) {
         order = await prisma.order.findFirst({
@@ -55,8 +56,16 @@ export class OrderController {
       // Fetch products for price calculations
       const products = await prisma.product.findMany({
         where: { id: { in: itemsToFind } },
-        select: { id: true, price: true, description: true, name: true },
+        select: { id: true, price: true, description: true, name: true, deleted: true },
       });
+
+      if(products.some(p => p.deleted)) {
+        return badRequest(new Error('Some products do not exist'))
+      }
+
+      const filteredProducts = products.map((product) => {
+        return omit(product, ['deleted'])
+      })
   
       if (!order) {
         if (body.removeProducts && body.removeProducts.length > 0) {
@@ -82,7 +91,6 @@ export class OrderController {
           },
           include,
         });
-  
         return ok(order);
       }
   
@@ -118,7 +126,7 @@ export class OrderController {
             const productDetails = itemsAlreadyInCart.find(p => p.productId === product.productId)!;
             itemsToUpdate.push({ ...product, price: productDetails.price });
           } else {
-            var productDetails = products.find(p => p.id === product.productId)!;
+            var productDetails = filteredProducts.find(p => p.id === product.productId)!;
             if(body.removeProducts?.includes(product.productId)) {
               productDetails = itemsAlreadyInCart.find(p => p.productId === product.productId)!.product!
             }
