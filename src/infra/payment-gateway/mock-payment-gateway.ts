@@ -56,6 +56,11 @@ export class MockPaymentGateway implements PaymentGatewayProtocol {
       transactionErrorCounter.inc({ error_type: 'payment_already_captured', method: 'refundPayment'});
       throw new Error('Payment already captured');
     }
+
+    if (payment.refunded) {
+      transactionErrorCounter.inc({ error_type: 'payment_already_refunded', method: 'refundPayment'});
+      throw new Error('Payment already refunded');
+    }
     payment.refunded = true;
     this.payments.set(paymentId, payment);
   }
