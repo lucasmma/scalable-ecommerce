@@ -43,10 +43,6 @@ export class OrderController {
           where: { userId: user.id, status: 'CART' },
           include,
         });
-
-        if(!order) {
-          return badRequest(new Error('Cart not found'))
-        }
       }
   
       // Collect product IDs to fetch
@@ -240,6 +236,54 @@ export class OrderController {
     })
 
     return ok(newOrder)
+  }
+
+  async cancelOrder (
+    request: HttpRequest,
+  ): Promise<HttpResponse> {
+    const { id } = request.params!
+    const { user } = request.auth!
+
+    var order = await prisma.order.findUnique({
+      where: {
+        id
+      }
+    })
+
+    if(!order) {
+      return badRequest(new Error('Order not found'))
+    }
+
+    if(order.status !== 'CONFIRMED') {
+      return badRequest(new Error('Order cannot be canceled'))
+    }
+
+    var updatedOrder = await prisma.order.update({
+      where: {
+        id
+      },
+      data: {
+        status: 'CANCELLED',
+      },
+      include: {
+        items: true
+      }
+    })
+
+    await this.paymentGatewayAdapter.refundPayment(id)
+
+    // readd stock
+    for (const item of updatedOrder.items) {
+      await this.stockMethods.add(item.productId, item.quantity)
+    }
+
+    await this.mailSenderAdapter.send({
+      to: user.email,
+      subject: 'Order canceled',
+      html: `Your order ${order.id} has been canceled and money refunded.`
+    })
+
+    return ok(updatedOrder)
   }
 
   async deliveryOrder (

@@ -145,6 +145,24 @@ import { idSchema } from '../schemas/id-schema'
  *             schema:
  *               $ref: '#/components/schemas/Order'
  * 
+ * /order/{id}/cancel:
+ *   post:
+ *     summary: Cancel cart
+ *     description: Cancel cart and refund money.
+ *     security:
+ *       - BearerAuth: [] 
+ *     tags:
+ *       - Orders
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdParameter'
+ *     responses:
+ *       200:
+ *         description: Cart paid successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Order'
+ * 
  * /order/{id}/delivery:
  *   post:
  *     summary: Mark an order as delivered
@@ -172,6 +190,7 @@ export default (router: Router): void => {
 
   router.post(baseRoute + '/update', adaptAuthRoute(jwtAdapter, 'USER'), adaptRoute(controller, controller.updateCartItems, { body: updateCartItemsSchema }))
   router.post(baseRoute + '/:id/pay', adaptAuthRoute(jwtAdapter, 'USER'), adaptRoute(controller, controller.payCart, { body: payCartSchema }))
+  router.post(baseRoute + '/:id/cancel', adaptAuthRoute(jwtAdapter, 'USER'), adaptRoute(controller, controller.cancelOrder, { param: idSchema }))
   router.post(baseRoute + '/:id/delivery', adaptAuthRoute(jwtAdapter, 'ADMIN'), adaptRoute(controller, controller.deliveryOrder, { param: idSchema }))
   router.get(baseRoute, adaptAuthRoute(jwtAdapter), adaptRoute(controller, controller.getOrders))
   router.get(baseRoute + '/:id', adaptAuthRoute(jwtAdapter), adaptRoute(controller, controller.getOrder))
