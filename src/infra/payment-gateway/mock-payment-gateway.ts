@@ -1,4 +1,5 @@
 import { PaymentGatewayProtocol, PaymentMethod } from '../../data/protocols/payment-gateway'
+import { transactionErrorCounter } from '../../main/config/registry-metrics'
 
 export class MockPaymentGateway implements PaymentGatewayProtocol {
   private payments: Map<string, { amount: number; currency: string; captured: boolean; refunded: boolean }> = new Map();
@@ -11,14 +12,17 @@ export class MockPaymentGateway implements PaymentGatewayProtocol {
     const currentMonth = new Date().getMonth() + 1;
 
     if(parseInt(expirationYear) < currentYear || (parseInt(expirationYear) === currentYear && parseInt(expirationMonth) < currentMonth)) {
+      transactionErrorCounter.inc({ error_type: 'invalid_expiration_date', method: 'initializePayment'});
       throw new Error('Invalid credit card expiration date');
     }
-
+    
     if(creditCard.cardNumber !== '4242424242424242') {
+      transactionErrorCounter.inc({ error_type: 'invalid_credit_card_number', method: 'initializePayment'});
       throw new Error('Invalid credit card number');
     }
-
+    
     if(this.payments.has(orderId)) {
+      transactionErrorCounter.inc({ error_type: 'payment_already_exist', method: 'initializePayment'});
       throw new Error('Payment already exists');
     }
 
@@ -28,8 +32,14 @@ export class MockPaymentGateway implements PaymentGatewayProtocol {
 
   async capturePayment(paymentId: string): Promise<void> {
     const payment = this.payments.get(paymentId);
-    if (!payment || payment.captured) {
-      throw new Error('Payment not found or already captured');
+    if(!payment) {
+      transactionErrorCounter.inc({ error_type: 'payment_not_found', method: 'capturePayment'});
+      throw new Error('Payment not found');
+    }
+
+    if (payment.captured) {
+      transactionErrorCounter.inc({ error_type: 'payment_already_captured', method: 'capturePayment'});
+      throw new Error('Payment already captured');
     }
     payment.captured = true;
     this.payments.set(paymentId, payment);
@@ -37,8 +47,14 @@ export class MockPaymentGateway implements PaymentGatewayProtocol {
 
   async refundPayment(paymentId: string): Promise<void> {
     const payment = this.payments.get(paymentId);
-    if (!payment || !payment.captured) {
-      throw new Error('Payment not found or not captured');
+    if(!payment) {
+      transactionErrorCounter.inc({ error_type: 'payment_not_found', method: 'refundPayment'});
+      throw new Error('Payment not found');
+    }
+
+    if (payment.captured) {
+      transactionErrorCounter.inc({ error_type: 'payment_already_captured', method: 'refundPayment'});
+      throw new Error('Payment already captured');
     }
     payment.refunded = true;
     this.payments.set(paymentId, payment);
