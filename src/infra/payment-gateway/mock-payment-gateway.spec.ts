@@ -1,5 +1,5 @@
 import { PaymentMethod } from '../../data/protocols/payment-gateway';
-import { MockPaymentGateway } from './mock-payment-gateway'
+import { MockPaymentGateway } from './mock-payment-gateway';
 
 const makeSut = (): MockPaymentGateway => {
   return new MockPaymentGateway();
@@ -62,7 +62,7 @@ describe('MockPaymentGateway', () => {
 
   describe('capturePayment', () => {
     test('Should throw if the payment is not found', async () => {
-      await expect(sut.capturePayment('nonexistent_payment')).rejects.toThrow('Payment not found or already captured');
+      await expect(sut.capturePayment('nonexistent_payment')).rejects.toThrow('Payment not found');
     });
 
     test('Should throw if the payment is already captured', async () => {
@@ -70,7 +70,7 @@ describe('MockPaymentGateway', () => {
       await sut.initializePayment(captureOrderId, amount, currency, validPaymentMethod);
       await sut.capturePayment(captureOrderId);
 
-      await expect(sut.capturePayment(captureOrderId)).rejects.toThrow('Payment not found or already captured');
+      await expect(sut.capturePayment(captureOrderId)).rejects.toThrow('Payment already captured');
     });
 
     test('Should successfully capture a payment', async () => {
@@ -83,20 +83,20 @@ describe('MockPaymentGateway', () => {
 
   describe('refundPayment', () => {
     test('Should throw if the payment is not found', async () => {
-      await expect(sut.refundPayment('nonexistent_payment')).rejects.toThrow('Payment not found or not captured');
+      await expect(sut.refundPayment('nonexistent_payment')).rejects.toThrow('Payment not found');
     });
 
-    test('Should throw if the payment is not captured', async () => {
+    test('Should throw if the payment is already refunded', async () => {
       const refundOrderId = 'order_refund';
       await sut.initializePayment(refundOrderId, amount, currency, validPaymentMethod);
+      await sut.refundPayment(refundOrderId);
 
-      await expect(sut.refundPayment(refundOrderId)).rejects.toThrow('Payment not found or not captured');
+      await expect(sut.refundPayment(refundOrderId)).rejects.toThrow('Payment already refunded');
     });
 
-    test('Should successfully refund a payment', async () => {
+    test('Should successfully refund after intialize payment', async () => {
       const refundOrderId = 'order_refund_success';
       await sut.initializePayment(refundOrderId, amount, currency, validPaymentMethod);
-      await sut.capturePayment(refundOrderId);
 
       await expect(sut.refundPayment(refundOrderId)).resolves.not.toThrow();
     });
