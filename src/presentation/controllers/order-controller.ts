@@ -8,11 +8,13 @@ import { StockMethods } from '../../domain/usecases/stock-methods'
 import { MailSenderAdapter } from '../../infra/mail/mail-sender-adapter'
 import { CacheProtocol } from '../../data/protocols/cache'
 import { Order, OrderItem, Product } from '@prisma/client'
+import { MockPaymentGateway } from '../../infra/payment-gateway/mock-payment-gateway'
 
 export class OrderController {
   constructor(private readonly stockMethods: StockMethods,
     private readonly mailSenderAdapter: MailSenderAdapter,
-    private readonly cartCacheAdapter: CacheProtocol,) {
+    private readonly cartCacheAdapter: CacheProtocol,
+    private readonly paymentGatewayAdapter: MockPaymentGateway) {
     this.stockMethods = stockMethods
   }
 
@@ -175,7 +177,7 @@ export class OrderController {
     request: HttpRequest<(typeof payCartSchema._output)>,
   ): Promise<HttpResponse> {
     const { user } = request.auth!
-    const { address } = request.body!
+    const { address, card } = request.body!
     const { id } = request.params!
 
     var order = await this.cartCacheAdapter.get<(Order & {items: (OrderItem)[]})>(user.id)
@@ -205,6 +207,8 @@ export class OrderController {
     if (order.status !== 'CART') {
       return badRequest(new Error('Order is already paid'));
     }
+
+    await this.paymentGatewayAdapter.initializePayment(order.id, order.total, 'USD', card)
 
     const productsUsed = order.items.map((item) => ({
       productId: item.productId,
@@ -252,6 +256,7 @@ export class OrderController {
       }
     })
 
+    await this.paymentGatewayAdapter.capturePayment(id)
     return ok(order)
   }
 
