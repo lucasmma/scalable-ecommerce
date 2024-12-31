@@ -75,6 +75,7 @@ enum OrderStatus {
   CART
   CONFIRMED
   DELIVERED
+  CANCELLED
 }
 
 model Stock {

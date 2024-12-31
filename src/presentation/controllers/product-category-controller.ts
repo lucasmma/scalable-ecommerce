@@ -70,7 +70,11 @@ export class ProductCategoryController {
     var include = {}
     if(request.query?.include_products) {
       include = {
-        products: true
+        products: {
+          where: {
+            deleted: false
+          }
+        }
       }
     }
 

@@ -8,11 +8,14 @@ import { StockMethods } from '../../domain/usecases/stock-methods'
 import { MailSenderAdapter } from '../../infra/mail/mail-sender-adapter'
 import { CacheProtocol } from '../../data/protocols/cache'
 import { Order, OrderItem, Product } from '@prisma/client'
+import { MockPaymentGateway } from '../../infra/payment-gateway/mock-payment-gateway'
+import { omit } from '../helpers/omit-field'
 
 export class OrderController {
   constructor(private readonly stockMethods: StockMethods,
     private readonly mailSenderAdapter: MailSenderAdapter,
-    private readonly cartCacheAdapter: CacheProtocol,) {
+    private readonly cartCacheAdapter: CacheProtocol,
+    private readonly paymentGatewayAdapter: MockPaymentGateway) {
     this.stockMethods = stockMethods
   }
 
@@ -26,7 +29,7 @@ export class OrderController {
       items: {
         include: { 
           product: {
-            select: { id:true, name: true, description: true, price: true }
+            select: { id:true, name: true, description: true, price: true, deleted: true }
           } 
         },
       },
@@ -34,17 +37,13 @@ export class OrderController {
   
     return prisma.$transaction(async (prisma) => {
       // Fetch current cart
-      var order = await this.cartCacheAdapter.get<(Order & {items: (OrderItem & {product: { id: string, name: string, description: string, price: number}})[]})>(user.id)
+      var order = await this.cartCacheAdapter.get<(Order & {items: (OrderItem & {product: { id: string, name: string, description: string, price: number }})[]})>(user.id)
 
       if(!order) {
         order = await prisma.order.findFirst({
           where: { userId: user.id, status: 'CART' },
           include,
         });
-
-        if(!order) {
-          return badRequest(new Error('Cart not found'))
-        }
       }
   
       // Collect product IDs to fetch
@@ -57,8 +56,16 @@ export class OrderController {
       // Fetch products for price calculations
       const products = await prisma.product.findMany({
         where: { id: { in: itemsToFind } },
-        select: { id: true, price: true, description: true, name: true },
+        select: { id: true, price: true, description: true, name: true, deleted: true },
       });
+
+      if(products.some(p => p.deleted)) {
+        return badRequest(new Error('Some products do not exist'))
+      }
+
+      const filteredProducts = products.map((product) => {
+        return omit(product, ['deleted'])
+      })
   
       if (!order) {
         if (body.removeProducts && body.removeProducts.length > 0) {
@@ -84,6 +91,8 @@ export class OrderController {
           },
           include,
         });
+        
+        await this.cartCacheAdapter.set(user.id, order);
   
         return ok(order);
       }
@@ -120,7 +129,7 @@ export class OrderController {
             const productDetails = itemsAlreadyInCart.find(p => p.productId === product.productId)!;
             itemsToUpdate.push({ ...product, price: productDetails.price });
           } else {
-            var productDetails = products.find(p => p.id === product.productId)!;
+            var productDetails = filteredProducts.find(p => p.id === product.productId)!;
             if(body.removeProducts?.includes(product.productId)) {
               productDetails = itemsAlreadyInCart.find(p => p.productId === product.productId)!.product!
             }
@@ -175,7 +184,7 @@ export class OrderController {
     request: HttpRequest<(typeof payCartSchema._output)>,
   ): Promise<HttpResponse> {
     const { user } = request.auth!
-    const { address } = request.body!
+    const { address, card } = request.body!
     const { id } = request.params!
 
     var order = await this.cartCacheAdapter.get<(Order & {items: (OrderItem)[]})>(user.id)
@@ -205,6 +214,8 @@ export class OrderController {
     if (order.status !== 'CART') {
       return badRequest(new Error('Order is already paid'));
     }
+
+    await this.paymentGatewayAdapter.initializePayment(order.id, order.total, 'USD', card)
 
     const productsUsed = order.items.map((item) => ({
       productId: item.productId,
@@ -238,6 +249,54 @@ export class OrderController {
     return ok(newOrder)
   }
 
+  async cancelOrder (
+    request: HttpRequest,
+  ): Promise<HttpResponse> {
+    const { id } = request.params!
+    const { user } = request.auth!
+
+    var order = await prisma.order.findUnique({
+      where: {
+        id
+      }
+    })
+
+    if(!order) {
+      return badRequest(new Error('Order not found'))
+    }
+
+    if(order.status !== 'CONFIRMED') {
+      return badRequest(new Error('Order cannot be canceled'))
+    }
+
+    var updatedOrder = await prisma.order.update({
+      where: {
+        id
+      },
+      data: {
+        status: 'CANCELLED',
+      },
+      include: {
+        items: true
+      }
+    })
+
+    await this.paymentGatewayAdapter.refundPayment(id)
+
+    // readd stock
+    for (const item of updatedOrder.items) {
+      await this.stockMethods.add(item.productId, item.quantity)
+    }
+
+    await this.mailSenderAdapter.send({
+      to: user.email,
+      subject: 'Order canceled',
+      html: `Your order ${order.id} has been canceled and money refunded.`
+    })
+
+    return ok(updatedOrder)
+  }
+
   async deliveryOrder (
     request: HttpRequest,
   ): Promise<HttpResponse> {
@@ -249,8 +308,22 @@ export class OrderController {
       },
       data: {
         status: 'DELIVERED',
+      },
+      include: {
+        user: {select: {email: true}}
       }
     })
+
+    await this.paymentGatewayAdapter.capturePayment(id)
+
+
+
+    await this.mailSenderAdapter.send({
+      to: order.user.email,
+      subject: 'Payment captured and order delivered',
+      html: `Your order ${order.id} has been delivered on ${order.address}. The payment has been captured.`
+    })
+
 
     return ok(order)
   }
