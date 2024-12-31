@@ -253,10 +253,23 @@ export class OrderController {
       },
       data: {
         status: 'DELIVERED',
+      },
+      include: {
+        user: {select: {email: true}}
       }
     })
 
     await this.paymentGatewayAdapter.capturePayment(id)
+
+
+
+    await this.mailSenderAdapter.send({
+      to: order.user.email,
+      subject: 'Payment captured and order delivered',
+      html: `Your order ${order.id} has been delivered on ${order.address}. The payment has been captured.`
+    })
+
+
     return ok(order)
   }
 
