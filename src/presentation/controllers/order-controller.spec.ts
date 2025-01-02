@@ -281,6 +281,13 @@ describe('OrderController', () => {
         status: 'CANCELLED',
         updatedAt: new Date(),
       });
+      jest.spyOn(stockMethods, 'add').mockResolvedValue({
+        id: 'stock1',
+        productId: 'prod1',
+        quantity: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
   
       const response = await orderController.cancelOrder(request);
   
