@@ -303,7 +303,21 @@ export class OrderController {
   ): Promise<HttpResponse> {
     const { id } = request.params!
 
-    var order = await prisma.order.update({
+    const order = await prisma.order.findUnique({
+      where: {
+        id
+      }
+    })
+
+    if(!order) {
+      return badRequest(new Error('Order not found'))
+    }
+
+    if(order.status !== 'CONFIRMED') {
+      return badRequest(new Error('Order cannot be delivered'))
+    }
+
+    const updatedOrder = await prisma.order.update({
       where: {
         id
       },
@@ -320,7 +334,7 @@ export class OrderController {
 
 
     await this.mailSenderAdapter.send({
-      to: order.user.email,
+      to: updatedOrder.user.email,
       subject: 'Payment captured and order delivered',
       html: `Your order ${order.id} has been delivered on ${order.address}. The payment has been captured.`
     })
