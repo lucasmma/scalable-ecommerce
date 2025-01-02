@@ -42,6 +42,7 @@ describe('AdaptRoute Middleware', () => {
   let app: express.Application
 
   beforeEach(() => {
+    jest.clearAllMocks()
     app = express()
     
     app.use(bodyParser)
