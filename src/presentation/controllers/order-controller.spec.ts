@@ -329,6 +329,5 @@ describe('OrderController', () => {
         body: new Error('Order cannot be canceled'),
       });
     });
-
   });
 });
