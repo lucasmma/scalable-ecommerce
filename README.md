@@ -104,10 +104,14 @@ You can access the project's Postman collection using the following link:
 
 You can access the Swagger API documentation at the following URL:
 
-[API Documentation (Swagger)](/api-docs)
+  ```bash
+    /api-docs
+  ```
 
 ## Monitoring
 
-You can access the Prometheus monitoring dashboard at the following URL:
+You can access the Prometheus monitoring at the following URL:
 
-[Prometheus Dashboard](/metrics)
+  ```bash
+    /metrics
+  ```
