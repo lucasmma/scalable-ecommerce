@@ -22,9 +22,6 @@ const mockUser = {
   updatedAt: new Date(),
 }
 
-// Example prisma mock
-import { PrismaClient } from '@prisma/client';
-
 // Mock the PrismaClient class
 jest.mock('@prisma/client', () => {
   const mockPrismaClient = {
@@ -87,6 +84,10 @@ describe('OrderController', () => {
     orderController = new OrderController(stockMethods, mailSenderAdapter, cartCacheAdapter, paymentGatewayAdapter);
     jest.clearAllMocks()
   });
+
+  afterAll(async () => {
+    await redis.quit();
+  })
   
 
   describe('updateCartItems', () => {  
