@@ -93,3 +93,21 @@ This ensures that the application is automatically tested and deployed on every 
 ## Definition of classes
 
 ![Classes diagram](./r2-classes-diagram.png)
+
+## Postman Collection
+
+You can access the project's Postman collection using the following link:
+
+[View Postman Collection](https://universal-station-318821.postman.co/workspace/Code2~0f456f8a-7eef-447b-83d0-baba313d8d66/collection/23743628-8341ab6f-da2b-4402-8ebf-2f9ec93c8803?action=share&creator=23743628)
+
+## API Documentation
+
+You can access the Swagger API documentation at the following URL:
+
+[API Documentation (Swagger)](/api-docs)
+
+## Monitoring
+
+You can access the Prometheus monitoring dashboard at the following URL:
+
+[Prometheus Dashboard](/metrics)
