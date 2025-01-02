@@ -90,6 +90,18 @@ This project uses GitHub Actions for Continuous Integration and Continuous Deplo
 
 This ensures that the application is automatically tested and deployed on every change pushed to the `master` branch, maintaining a continuous flow from development to production.
 
+## Rate Limiter
+
+This project implements a **Rate Limiter** to prevent abuse and ensure fair use of the application's resources. The rate limiter is based on the user's IP address and limits the number of requests each IP can make.
+
+### How it works:
+- Each IP can make **only 5 requests per minute**.
+- The rate limiter is implemented using **Redis**, which stores and tracks the number of requests for each IP address.
+- If an IP exceeds the request limit within the given time window, further requests will be blocked with a `429 Too Many Requests` response.
+- Redis' **TTL (Time-to-Live)** functionality automatically resets the request counter every minute, allowing the user to make new requests.
+
+This ensures that the application is protected from excessive requests and remains performant even under heavy traffic.
+
 ## Definition of classes
 
 ![Classes diagram](./r2-classes-diagram.png)
