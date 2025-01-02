@@ -101,7 +101,7 @@ export class ProductController {
   async deleteProduct(request: HttpRequest): Promise<HttpResponse> {
     const { id } = request.params!
 
-    await prisma.product.update({
+    const product = await prisma.product.update({
       where: {
         id
       },
@@ -111,6 +111,6 @@ export class ProductController {
     })
 
     await this.cacheAdapter.delete(id)
-    return ok({})
+    return ok(product)
   }
 }
