@@ -53,11 +53,15 @@ export class ProductController {
   }  
 
   async getProductsByCategory(request: HttpRequest): Promise<HttpResponse> {
-    const { id } = request.params!
+    const { id } = request.params!    
+    const isAdmin = request.auth?.user.role === 'ADMIN';
+
+    const where = isAdmin ? {} : { deleted: false };
 
     var products = await prisma.product.findMany({
       where: {
-        categoryId: id
+        categoryId: id,
+        ...where
       }})
     return ok(products)
   }
@@ -97,7 +101,7 @@ export class ProductController {
   async deleteProduct(request: HttpRequest): Promise<HttpResponse> {
     const { id } = request.params!
 
-    await prisma.product.update({
+    const product = await prisma.product.update({
       where: {
         id
       },
@@ -107,6 +111,6 @@ export class ProductController {
     })
 
     await this.cacheAdapter.delete(id)
-    return ok({})
+    return ok(product)
   }
 }

@@ -21,8 +21,8 @@ export class RateLimiter implements RateLimiterProtocol {
     try {
       const ttl = await this.redisClient.ttl(keyWithPrefix);
 
-      if (ttl === -2) {
-        // Key does not exist, initialize it
+      if (ttl === -2 || ttl === -1) {
+        // Key does not exist or expired, initialize it
         await this.redisClient.set(keyWithPrefix, 1, 'EX', this.duration);
         return true;
       }

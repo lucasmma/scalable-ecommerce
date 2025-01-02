@@ -54,11 +54,13 @@ describe('JwtAdapter', () => {
       expect(payload).toEqual(mockUser);
     });
 
-    test('Should throw an error if jwt.verify fails', () => {
-      jest.spyOn(jwt, 'verify').mockImplementationOnce(() => {
-        throw new Error('Invalid token');
+    test('Should return null if jwt.verify fails', () => {
+      jest.spyOn(jwt, 'verify').mockImplementationOnce((token) => {
+        throw new Error(); // Simulate failure
       });
-      expect(() => sut.validate('invalid_token')).toThrow('Invalid token');
+    
+      const result = sut.validate('invalid_token');
+      expect(result).toBeNull();
     });
   });
 
