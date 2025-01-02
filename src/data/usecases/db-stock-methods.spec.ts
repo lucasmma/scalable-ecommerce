@@ -4,6 +4,9 @@ import { Stock } from '@prisma/client'
 
 // Mocking Prisma Client
 jest.mock('../../main/config/prisma', () => ({
+  product: {
+    findUnique: jest.fn(),
+  },
   stock: {
     upsert: jest.fn(),
     findUnique: jest.fn(),
@@ -15,6 +18,7 @@ jest.mock('../../main/config/prisma', () => ({
 describe('DbStockMethods', () => {
   let dbStockMethods: DbStockMethods
   let upsert = prisma.stock.upsert as jest.Mock
+  let productFindUnique = prisma.product.findUnique as jest.Mock
   let findUnique = prisma.stock.findUnique as jest.Mock
   let findMany = prisma.stock.findMany as jest.Mock
   let update = prisma.stock.update as jest.Mock
@@ -26,6 +30,14 @@ describe('DbStockMethods', () => {
     updatedAt: new Date(),
   }
 
+  const mockProduct = {
+    id: '123',
+    name: 'Product',
+    description: 'Description',
+    price: 10,
+    categoryId: '123',
+  }
+
   beforeEach(() => {
     dbStockMethods = new DbStockMethods()
   })
@@ -35,6 +47,7 @@ describe('DbStockMethods', () => {
       // Arrange
       const productId = '123'
       const quantity = 10
+      productFindUnique.mockResolvedValue(mockProduct)
       upsert.mockResolvedValue(mockStock)
 
       // Act
@@ -75,7 +88,7 @@ describe('DbStockMethods', () => {
       // Arrange
       const productId = '123'
       const quantity = 10
-      findUnique.mockResolvedValue(mockStock)
+      productFindUnique.mockResolvedValue(mockStock)
       update.mockResolvedValue(mockStock)
 
       // Act
