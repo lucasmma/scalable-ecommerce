@@ -13,11 +13,11 @@ export class JwtAdapter implements JwtProtocol {
     return jwt.sign(user, this.secret, { expiresIn: expiresIn})
   }
   
-  validate (token: string): Omit<User, 'password'> {
+  validate (token: string): Omit<User, 'password'> | null{
     try {
       return jwt.verify(token, this.secret) as Omit<User, 'password'>
     } catch (error) {
-      throw new Error('Invalid token')
+      return null
     }
   }
 
