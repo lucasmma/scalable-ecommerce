@@ -54,6 +54,7 @@ export class OrderController {
       }
   
       // Fetch products for price calculations
+      // could add cache here
       const products = await prisma.product.findMany({
         where: { id: { in: itemsToFind } },
         select: { id: true, price: true, description: true, name: true, deleted: true },
