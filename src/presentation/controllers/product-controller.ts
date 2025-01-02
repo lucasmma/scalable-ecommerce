@@ -53,11 +53,15 @@ export class ProductController {
   }  
 
   async getProductsByCategory(request: HttpRequest): Promise<HttpResponse> {
-    const { id } = request.params!
+    const { id } = request.params!    
+    const isAdmin = request.auth?.user.role === 'ADMIN';
+
+    const where = isAdmin ? {} : { deleted: false };
 
     var products = await prisma.product.findMany({
       where: {
-        categoryId: id
+        categoryId: id,
+        ...where
       }})
     return ok(products)
   }
