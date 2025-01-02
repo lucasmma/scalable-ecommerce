@@ -398,6 +398,10 @@ export class OrderController {
       }
     })
 
+    if(!order) {
+      return badRequest(new Error('Order not found'))
+    }
+
     return ok(order)
   }
 }
