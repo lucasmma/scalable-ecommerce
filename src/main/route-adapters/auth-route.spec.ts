@@ -22,7 +22,7 @@ class MockJwt implements JwtProtocol {
     } else if (token === 'valid-token-user') {
       return { role: 'USER', userId: '2' } // Return a valid payload for user role
     } else {
-      throw new Error('Invalid token') // For any other token, throw error
+      return null // For any other token, throw error
     }
   }
 
