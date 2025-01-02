@@ -19,27 +19,26 @@ export const adaptAuthRoute = (jwt: JwtProtocol, role?: 'USER' | 'ADMIN') => {
     }
 
     // validate token
-    try {
-      const decoded = jwt.validate(token)
+    const decoded = jwt.validate(token)
 
-      if (role && decoded.role !== role) {
-        securityEventCounter.inc({ event_type: 'wrong_token', route: req.originalUrl })
-        res.status(403).json({
-          error: 'Forbidden'
-        })
-        return
-      }
-
-      req.auth = {
-        user: decoded
-      }
-    } catch (error: any) {
-      securityEventCounter.inc({ event_type: 'missing_token', route: req.originalUrl })
-      exceptionCounter.inc({ method: req.method, route: req.originalUrl, status_code: 401, error: error.message ?? 'unkown' })
+    if(decoded === null) {
+      securityEventCounter.inc({ event_type: 'invalid_token', route: req.originalUrl })
       res.status(401).json({
         error: 'Unauthorized'
       })
       return
+    }
+
+    if (role && decoded.role !== role) {
+      securityEventCounter.inc({ event_type: 'wrong_token', route: req.originalUrl })
+      res.status(403).json({
+        error: 'Forbidden'
+      })
+      return
+    }
+
+    req.auth = {
+      user: decoded
     }
     
     next()
