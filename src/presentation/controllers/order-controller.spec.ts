@@ -87,6 +87,10 @@ describe('OrderController', () => {
     orderController = new OrderController(stockMethods, mailSenderAdapter, cartCacheAdapter, paymentGatewayAdapter);
     jest.clearAllMocks()
   });
+
+  afterAll(async () => {
+    await redis.quit();
+  })
   
 
   describe('updateCartItems', () => {  
