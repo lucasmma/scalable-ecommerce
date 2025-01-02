@@ -6,6 +6,14 @@ import prisma from '../../main/config/prisma'
 export class DbStockMethods implements StockMethods {
   async add(productId: string, quantity: number): Promise<Stock> {
     // check if exists stock otherwise create
+    const productValidation = await prisma.product.findUnique({
+      where: { id: productId }
+    })
+
+    if (!productValidation) {
+      throw new Error('Product not found')
+    }
+
     const stock = await prisma.stock.upsert({
       where: { productId },
       update: { quantity: { increment: quantity } },
@@ -17,6 +25,14 @@ export class DbStockMethods implements StockMethods {
 
   async remove(productId: string, quantity: number): Promise<Stock> {
     // check if exists stock otherwise create
+    const productValidation = await prisma.product.findUnique({
+      where: { id: productId }
+    })
+
+    if (!productValidation) {
+      throw new Error('Product not found')
+    }
+
     var stock = await prisma.stock.findUnique({
       where: { productId }
     })
