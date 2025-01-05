@@ -15,12 +15,27 @@ services:
       dockerfile: Dockerfile
     container_name: express-server
     ports:
-      - "8080:8080" # Expose Express server on port 3000
+      - "8080:8080" # Expose Express server on port 8080
     environment:
       - NODE_ENV=production
     depends_on:
       - prometheus
     restart: unless-stopped
 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana # Persistent storage
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: unless-stopped
+
 volumes:
   prometheus-data: # Persistent volume for Prometheus
+  grafana-data: # Persistent volume for Grafana
