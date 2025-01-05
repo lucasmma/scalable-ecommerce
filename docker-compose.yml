@@ -1,0 +1,11 @@
+services:
+  express-server:
+    build:
+      context: . # Path to your Express app Dockerfile
+      dockerfile: Dockerfile
+    container_name: express-server
+    ports:
+      - "3000:3000" # Expose Express server on port 3000
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
