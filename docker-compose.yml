@@ -1,4 +1,14 @@
 services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090" # Prometheus web UI
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus # Persistent metrics storage
+    restart: unless-stopped
+
   express-server:
     build:
       context: . # Path to your Express app Dockerfile
@@ -8,4 +18,9 @@ services:
       - "3000:3000" # Expose Express server on port 3000
     environment:
       - NODE_ENV=production
+    depends_on:
+      - prometheus
     restart: unless-stopped
+
+volumes:
+  prometheus-data: # Persistent volume for Prometheus
