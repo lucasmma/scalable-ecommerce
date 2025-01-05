@@ -23,7 +23,7 @@ COPY --from=builder /usr/src/app/prisma ./prisma
 COPY --from=builder /usr/src/app/src/main/routes /usr/src/app/src/main/routes
 COPY --from=builder /usr/src/app/src/main/schemas /usr/src/app/src/main/schemas
 
-EXPOSE 3000
+EXPOSE 8080
 
 COPY .env .env  
 

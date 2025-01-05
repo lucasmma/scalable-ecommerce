@@ -15,7 +15,7 @@ services:
       dockerfile: Dockerfile
     container_name: express-server
     ports:
-      - "3000:3000" # Expose Express server on port 3000
+      - "8080:8080" # Expose Express server on port 3000
     environment:
       - NODE_ENV=production
     depends_on:
