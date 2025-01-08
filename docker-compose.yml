@@ -1,0 +1,75 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090" # Prometheus web UI
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus # Persistent metrics storage
+    restart: unless-stopped
+
+  express-server:
+    build:
+      context: . # Path to your Express app Dockerfile
+      dockerfile: Dockerfile
+    container_name: express-server
+    ports:
+      - "443:443" # Expose Express server on port 443
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://express_user:express_password@postgres:5432/express_db
+      - JWT_SECRET=1af9610c-7568-4f3a-89d6-cac44d0fd980
+      - SECONDARY_JWT_SECRET=e949469eef4691df92dd2321a1ba9929
+      - REDIS_URL=redis://redis:6379
+      - NODEMAILER_HOST=
+      - NODEMAILER_PORT=
+      - NODEMAILER_USER=
+      - NODEMAILER_PASS=
+    depends_on:
+      - prometheus
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana # Persistent storage
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=express_user
+      - POSTGRES_PASSWORD=express_password
+      - POSTGRES_DB=express_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data # Persistent data storage
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379" # Expose Redis on default port
+    volumes:
+      - redis-data:/data # Persistent data storage
+    restart: unless-stopped
+
+volumes:
+  prometheus-data: # Persistent volume for Prometheus
+  grafana-data: # Persistent volume for Grafana
+  postgres-data: # Persistent volume for PostgreSQL
+  redis-data: # Persistent volume for Redis

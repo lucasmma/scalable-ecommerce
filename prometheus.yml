@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus' # Scrape itself
+    static_configs:
+      - targets: ['localhost:9090' ]
+
+  - job_name: 'Express Server' # Scrape the R2 ecommerce server
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['express-server:443'] # Docker container name
+        labels:
+          application: "R2 e-commerce server"

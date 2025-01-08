@@ -11,20 +11,21 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
-# Copy only the production dependencies
+# Install only production dependencies
 COPY --from=builder /usr/src/app/package*.json ./
 RUN npm install --production
 
-# Copy the build files and Prisma client from the builder stage
+# Copy the build files and Prisma client
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /usr/src/app/prisma ./prisma
-# Copy route and schema files to final image if needed
-COPY --from=builder /usr/src/app/src/main/routes /usr/src/app/src/main/routes
-COPY --from=builder /usr/src/app/src/main/schemas /usr/src/app/src/main/schemas
 
 EXPOSE 443
 
 # COPY .env .env  
+# Copy Prisma migrations and apply them
+COPY --from=builder /usr/src/app/prisma/migrations ./prisma/migrations
 
-CMD ["node", "dist/main/server.js"]
+# COPY .env .env  
+
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main/server.js"]
