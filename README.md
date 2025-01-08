@@ -19,8 +19,8 @@ Make sure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd <repository-name>
+git clone https://github.com/lucasmma/scalable-ecommerce
+cd scalable-ecommerce
 ```
 ### 2. Set Up Environment Variables
 Edit environment variables on docker-compose.yml file to make sure email/notification system works fine:
