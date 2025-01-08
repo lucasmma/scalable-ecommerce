@@ -1,6 +1,6 @@
 # Ecommerce Scalable
 
-A scalable architecture using cache, rate-limiting, monitoring tools and advanced security strategies, using 5 services.
+A scalable architecture using cache, rate-limiting, monitoring tools and advanced security strategies, using 5 services. Using CI/CD pipeline to run tests and deploy docker express-server 
 
 Typescript, Redis, PostgreSQL, Prometheus, Grafana
 
