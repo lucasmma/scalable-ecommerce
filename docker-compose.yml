@@ -21,9 +21,11 @@ services:
       - DATABASE_URL=postgresql://express_user:express_password@postgres:5432/express_db
       - JWT_SECRET=1af9610c-7568-4f3a-89d6-cac44d0fd980
       - SECONDARY_JWT_SECRET=e949469eef4691df92dd2321a1ba9929
+      - REDIS_URL=redis://redis:6379
     depends_on:
       - prometheus
       - postgres
+      - redis
     restart: unless-stopped
 
   grafana:
@@ -53,7 +55,17 @@ services:
       - postgres-data:/var/lib/postgresql/data # Persistent data storage
     restart: unless-stopped
 
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379" # Expose Redis on default port
+    volumes:
+      - redis-data:/data # Persistent data storage
+    restart: unless-stopped
+
 volumes:
   prometheus-data: # Persistent volume for Prometheus
   grafana-data: # Persistent volume for Grafana
   postgres-data: # Persistent volume for PostgreSQL
+  redis-data: # Persistent volume for Redis
