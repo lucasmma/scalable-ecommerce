@@ -1,4 +1,64 @@
-# r2-take-home-project
+# Ecommerce Scalable
+
+A scalable architecture using cache, rate-limiting, monitoring tools and advanced security strategies, using 5 services.
+
+Typescript, Redis, PostgreSQL, Prometheus, Grafana
+
+---
+
+## How to Run and Test the Project
+
+### Prerequisites
+
+Make sure you have the following installed:
+- [Docker](https://www.docker.com/) and Docker Compose
+- Node.js (for local development, optional)
+
+---
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd <repository-name>
+```
+### 2. Set Up Environment Variables
+Edit environment variables on docker-compose.yml file to make sure email/notification system works fine:
+
+```bash
+NODEMAILER_HOST=
+NODEMAILER_PORT=
+NODEMAILER_USER=
+NODEMAILER_PASS=
+```
+### 3. Start the Project with Docker
+Run the following command to build and start the containers:
+
+```bash
+docker-compose up --build
+```
+This will start:
+
+- The express-server on port 443
+- The postgres database on port 5432
+- The redis server on port 6379
+- The prometheus server on port 9090
+- The grafana server on port 3000
+### 4. Access the Services
+Express Server: http://localhost:433
+
+Prometheus: http://localhost:9090
+
+Grafana: http://localhost:3000
+Username: admin
+Password: admin
+### 5. Run Tests
+To run tests locally (optional), you can execute:
+
+```bash
+npm install
+npm run test
+```
 
 ## Project Architecture
 
@@ -63,7 +123,7 @@ The `presentation` layer contains the controllers responsible for processing req
 3. **Data access**: If necessary, the `controller` interacts with the `data` layer to access or persist data in the database.
 4. **Response to the client**: Finally, the response is formatted by the controller and returned to the client.
 
-## How to Run
+## How to Run locally
 
 To run the project locally, follow these steps:
 
@@ -71,12 +131,17 @@ To run the project locally, follow these steps:
    ```bash
     nvm use
    ```
-2. Generate prisma models
+2. Setup environment variables on .env:
+   ```bash  
+      DATABASE_URL=
+      ...
+   ```
+3. Generate prisma models
    ```bash
     npx prisma generate
    ```
 
-2. Run locally
+4. Run locally
    ```bash
     npm start
    ```
